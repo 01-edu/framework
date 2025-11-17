@@ -1,3 +1,8 @@
+/**
+ * Rely on sqlite PRAGMA user_version to apply migrations
+ * @module
+ */
+
 import { db, sql } from './db.ts'
 
 const getVersionFromFile = (filename: string) => {

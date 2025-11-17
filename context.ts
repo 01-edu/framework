@@ -1,3 +1,9 @@
+/**
+ * Keep track of information for each web request, like the URL and session.
+ * This lets you easily get the current request's details from anywhere.
+ * @module
+ */
+
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { startTime } from './time.ts'
 
@@ -43,5 +49,6 @@ export const makeContext = <T>(
 const defaultContext: RequestContext<undefined> = makeContext('/')
 export const requestContext: AsyncLocalStorage<RequestContext> =
   new AsyncLocalStorage<RequestContext>()
+
 export const getContext = (): RequestContext<unknown> =>
   requestContext.getStore() || defaultContext

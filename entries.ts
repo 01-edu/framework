@@ -1,3 +1,12 @@
+/**
+ * Setup Entries, this is made for applications that want to be organized with
+ * entries as a generic fact representing all of the app state and changes.
+ * This takes inspiration from star schema and event sourcing.
+ * Entries additionally share concepts with our context module to embed
+ * structural request information like the session automatically per entry
+ * @module
+ */
+
 // deno-lint-ignore-file no-explicit-any
 import { assertEquals } from '@std/assert/equals'
 import {

@@ -1,3 +1,9 @@
+/**
+ * Add support for sending logs to our devtools.
+ * Our Logger also help shapping logs and recognize our context module.
+ * @module
+ */
+
 import {
   blue,
   brightBlue,

@@ -1,3 +1,11 @@
+/**
+ * Create and interact with SQLite database tables.
+ * You define the table's columns, and it automatically generates functions to
+ * insert, update, find, and run custom SQL queries on that table,
+ * reducing sql boilerplate.
+ * @module
+ */
+
 import { assertEquals } from '@std/assert/equals'
 import {
   type BindParameters,

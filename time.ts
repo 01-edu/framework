@@ -1,16 +1,19 @@
-// Shared functions to manage time
+/**
+ * Shared functions to manage time in seconds instead of milliseconds
+ * @module
+ */
 
 export const startTime = performance.timeOrigin / 1000
+let lastTime = startTime
 /**
  * Return the current timestamp in seconds since the epoch.
  * Uses the performance API for high precision timing.
  * Ensured to be unique per process.
  *
  * @example
- * const timestamp = now();
- * console.log(timestamp); // Output: 1731521396.557123 (example timestamp)
+ * const timestamp = now()
+ * console.log(timestamp) // Output: 1731521396.557123 (example timestamp)
  */
-let lastTime = startTime
 export const now = (): number => {
   const time = startTime + performance.now() / 1000
   if (time === lastTime) return now()

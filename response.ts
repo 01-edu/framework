@@ -1,3 +1,13 @@
+/**
+ * Set of simple shortcuts for creating standard JSON web responses
+ * for every HTTP status code, like respond.OK() or respond.NotFound().
+ * It also automatically creates corresponding error classes for HTTP errors,
+ * so you can easily throw a NotFoundError in your code.
+ * This interact with our provided server to allow errors that can be used
+ * by both application code and to build http response.
+ * @module
+ */
+
 import { STATUS_CODE, STATUS_TEXT } from '@std/http/status'
 
 const defaultHeaderEntries: [string, string][] = [

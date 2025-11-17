@@ -1,3 +1,9 @@
+/**
+ * Util to define event variable with default fallback.
+ * Also define and share the expected `APP_ENV` required by our apps.
+ * @module
+ */
+
 export const ENV = (key: string, fallback?: string): string => {
   const value = Deno.env.get(key)
   if (value) return value
