@@ -35,7 +35,7 @@ const json = (data?: unknown, init?: ResponseInit) => {
   return new Response(JSON.stringify(data), init)
 }
 
-class ResponseError extends Error {
+export class ResponseError extends Error {
   public response: Response
 
   constructor(message: string, response: Response) {

@@ -16,3 +16,7 @@ export const APP_ENV = ENV('APP_ENV', 'dev') as AppEnvironments
 if (APP_ENV !== 'dev' && APP_ENV !== 'prod' && APP_ENV !== 'test') {
   throw Error(`APP_ENV: "${APP_ENV}" must be "dev", "test" or "prod"`)
 }
+
+export const CI_COMMIT_SHA: string = ENV('CI_COMMIT_SHA', '')
+export const DEVTOOL_TOKEN: string = ENV('DEVTOOL_TOKEN', '')
+export const DEVTOOL_URL: string = ENV('DEVTOOL_URL', '')

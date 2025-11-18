@@ -1,6 +1,7 @@
 /**
  * Add support for sending logs to our devtools.
  * Our Logger also help shapping logs and recognize our context module.
+ *
  * @module
  */
 
@@ -21,7 +22,7 @@ import {
 } from '@std/fmt/colors'
 import { now, startTime } from './time.ts'
 import { getContext } from './context.ts'
-import { APP_ENV, type AppEnvironments } from './env.ts'
+import { APP_ENV, CI_COMMIT_SHA, DEVTOOL_TOKEN, DEVTOOL_URL } from './env.ts'
 
 // Types
 type LogLevel = 'info' | 'error' | 'warn' | 'debug'
@@ -32,7 +33,7 @@ type LogFunction = (
 ) => void
 type BoundLogFunction = (event: string, props?: Record<string, unknown>) => void
 
-interface Log extends LogFunction {
+export interface Log extends LogFunction {
   error: BoundLogFunction
   debug: BoundLogFunction
   warn: BoundLogFunction
@@ -83,20 +84,28 @@ const redactLongString = (_: string, value: unknown) => {
   return value.length > 100 ? 'long_string' : value
 }
 
+const bind = (log: LogFunction) =>
+  Object.assign(log, {
+    error: log.bind(null, 'error'),
+    debug: log.bind(null, 'debug'),
+    warn: log.bind(null, 'warn'),
+    info: log.bind(null, 'info'),
+  }) as Log
+
 export const logger = async ({
-  logToken,
-  logUrl,
   filters,
   batchInterval = 5000,
   maxBatchSize = 50,
-  version,
+  logUrl = DEVTOOL_URL,
+  logToken = DEVTOOL_TOKEN,
+  version = CI_COMMIT_SHA,
 }: {
-  logToken?: string
-  logUrl?: string
-  version?: string
+  logUrl?: string // default to ENV: DEVTOOL_URL
+  logToken?: string // default to ENV: DEVTOOL_TOKEN
+  version?: string // default to ENV: CI_COMMIT_SHA or `git rev-parse HEAD` if not in prod
   batchInterval?: number
   maxBatchSize?: number
-  filters?: Record<AppEnvironments, Set<string> | undefined>
+  filters?: Set<string>
 }): Promise<Log> => {
   let logBatch: unknown[] = []
   if (APP_ENV === 'prod' && (!logToken || !logUrl)) {
@@ -152,34 +161,22 @@ export const logger = async ({
   const rootDir =
     import.meta.dirname?.slice(0, -'/lib'.length).replaceAll('\\', '/') || ''
 
-  const loggers: Record<typeof APP_ENV, LogFunction> = {
-    test: (level, event, props) => {
-      if (filters?.test?.has(event)) return
-      const ev = makePrettyTimestamp(level, event)
-      props ? console[level](ev, props) : console[level](ev)
-    },
+  const f = filters || new Set()
+  if (APP_ENV === 'prod') {
+    // Initialize batch interval
+    const interval = setInterval(flushLogs, batchInterval)
 
-    dev: (level, event, props) => {
-      if (filters?.dev?.has(event)) return
-      let callChain = ''
-      for (const s of Error('').stack!.split('\n').slice(2).reverse()) {
-        if (!s.includes(rootDir)) continue
-        const fnName = s.split(' ').at(-2)
-        if (!fnName || fnName === 'async' || fnName === 'at') continue
-        const coloredName = colored[fnName] ||
-          (colored[fnName] = colors
-            [Object.keys(colored).length % colors.length](
-              fnName,
-            ))
-        callChain = callChain ? `${callChain}/${coloredName}` : coloredName
-      }
+    // Cleanup on exit
+    const cleanup = async () => {
+      clearInterval(interval)
+      await flushLogs()
+      Deno.exit()
+    }
 
-      const ev = `${makePrettyTimestamp(level, event)} ${callChain}`.trim()
-      props ? console[level](ev, props) : console[level](ev)
-    },
-
-    prod: (level, event, props) => {
-      if (filters?.prod?.has(event)) return
+    Deno.addSignalListener('SIGINT', cleanup)
+    Deno.addSignalListener('SIGTERM', cleanup)
+    return bind((level, event, props) => {
+      if (f.has(event)) return
       const { trace, span } = getContext()
       const logData = {
         severity_number: levels[level].level,
@@ -196,29 +193,37 @@ export const logger = async ({
 
       logBatch.push(logData)
       logBatch.length >= maxBatchSize && flushLogs()
-    },
+    })
   }
 
-  if (APP_ENV === 'prod') {
-    // Initialize batch interval
-    const interval = setInterval(flushLogs, batchInterval)
-
-    // Cleanup on exit
-    const cleanup = async () => {
-      clearInterval(interval)
-      await flushLogs()
-      Deno.exit()
-    }
-
-    Deno.addSignalListener('SIGINT', cleanup)
-    Deno.addSignalListener('SIGTERM', cleanup)
+  if (APP_ENV === 'test') {
+    return bind((level, event, props) => {
+      if (f.has(event)) return
+      const ev = makePrettyTimestamp(level, event)
+      props ? console[level](ev, props) : console[level](ev)
+    })
   }
 
-  // Export the log function with bound methods
-  return Object.assign(loggers[APP_ENV], {
-    error: loggers[APP_ENV].bind(null, 'error'),
-    debug: loggers[APP_ENV].bind(null, 'debug'),
-    warn: loggers[APP_ENV].bind(null, 'warn'),
-    info: loggers[APP_ENV].bind(null, 'info'),
-  }) as Log
+  if (APP_ENV === 'dev') {
+    return bind((level, event, props) => {
+      if (f.has(event)) return
+      let callChain = ''
+      for (const s of Error('').stack!.split('\n').slice(2).reverse()) {
+        if (!s.includes(rootDir)) continue
+        const fnName = s.split(' ').at(-2)
+        if (!fnName || fnName === 'async' || fnName === 'at') continue
+        const coloredName = colored[fnName] ||
+          (colored[fnName] = colors
+            [Object.keys(colored).length % colors.length](
+              fnName,
+            ))
+        callChain = callChain ? `${callChain}/${coloredName}` : coloredName
+      }
+
+      const ev = `${makePrettyTimestamp(level, event)} ${callChain}`.trim()
+      props ? console[level](ev, props) : console[level](ev)
+    })
+  }
+
+  throw Error('unknown APP_ENV')
 }

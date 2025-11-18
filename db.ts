@@ -13,6 +13,7 @@ import {
   Database,
   type RestBindParameters,
 } from '@db/sqlite'
+import type { Expand, MatchKeys, UnionToIntersection } from './types.ts'
 import { respond } from './response.ts'
 import { APP_ENV, ENV } from './env.ts'
 
@@ -47,15 +48,10 @@ type ColDef = {
 
 export type TableProperties = Record<string, ColDef>
 type Table = { name: string; properties: TableProperties }
-export type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never
-type MatchKeys<T, E> = {
-  [K in keyof T]: T[K] extends E ? K : never
-}[keyof T]
-
-type OptionalKeys<T> = MatchKeys<T, { optional: true }>
 type PrimaryKeys<T> = MatchKeys<T, { primary: true }>
-type NonPrimaryKeys<T> = Exclude<keyof T, PrimaryKeys<T>>
+type OptionalKeys<T> = MatchKeys<T, { optional: true }>
 type RequiredKeys<T> = Exclude<NonPrimaryKeys<T>, OptionalKeys<T>>
+type NonPrimaryKeys<T> = Exclude<keyof T, PrimaryKeys<T>>
 type InferInsertType<T extends Record<string, { type: keyof DBTypes }>> =
   Expand<
     & { [K in RequiredKeys<T>]: DBTypes[T[K]['type']] }
@@ -65,11 +61,6 @@ type InferInsertType<T extends Record<string, { type: keyof DBTypes }>> =
 type SelectReturnType<T extends Record<string, ColDef>, K extends keyof T> = {
   [Column in K]: DBTypes[T[Column]['type']]
 }
-
-type UnionToIntersection<U> = (
-  U extends unknown ? (k: U) => void : never
-) extends (k: infer I) => void ? I
-  : never
 
 type FlattenProperties<T extends TableProperties> = Expand<
   UnionToIntersection<
@@ -88,10 +79,7 @@ export type Row<
 
 const isPrimary = ([_, def]: [string, ColDef]) => def.primary
 
-export type TableAPI<
-  N extends string,
-  P extends TableProperties,
-> = {
+export type TableAPI<N extends string, P extends TableProperties> = {
   name: N
   properties: P
   insert: (entries: InferInsertType<P>) => number
@@ -177,9 +165,8 @@ export const createTable = <N extends string, P extends TableProperties>(
   }
 
   // Add dynamic update functionality
-  const primaryKey = Object.keys(properties).find(
-    (k: keyof P) => properties[k].primary,
-  )
+  const primaryKey = Object.keys(properties)
+    .find((k: keyof P) => properties[k].primary)
 
   const updateStmt = db.prepare(`
     UPDATE ${name} SET
@@ -227,10 +214,7 @@ export const createTable = <N extends string, P extends TableProperties>(
   const sql = <
     K extends keyof FlatProps,
     T extends BindParameters | BindValue | undefined,
-  >(
-    sqlArr: TemplateStringsArray,
-    ...vars: unknown[]
-  ) => {
+  >(sqlArr: TemplateStringsArray, ...vars: unknown[]) => {
     const query = String.raw(sqlArr, ...vars)
     const stmt = db.prepare(query)
     return {

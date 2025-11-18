@@ -7,19 +7,18 @@
  * @module
  */
 
-// deno-lint-ignore-file no-explicit-any
 import { assertEquals } from '@std/assert/equals'
 import {
   createTable,
   db,
   type DBTypes,
-  type Expand,
   sql,
   type TableAPI,
   type TableProperties,
 } from './db.ts'
-import { requestContext } from './context.ts'
-import { now, startTime } from './time.ts'
+import { getContext } from './context.ts'
+import { now } from './time.ts'
+import type { Expand } from './types.ts'
 
 type EntryListenerGeneric<T extends TableProperties> = {
   controller: ReadableStreamDefaultController
@@ -182,33 +181,43 @@ export const initEntries = <
         k,
         Object.keys(fields).length
           ? (params: EntryInsertParams<typeof k, R>) => {
-            const context = requestContext.getStore()
-            const trace = context?.trace || startTime
-            const span = context?.span || null as unknown as number
-            const fieldsParams = []
-            const entryParams = { type, createdAt: now(), trace, span }
+            const { trace, span } = getContext()
+            const fieldsParams: {
+              table: TableAPI<string, TableProperties>
+              value: unknown
+              name: string
+            }[] = []
+            const entryParams: Record<string, unknown> = {
+              type,
+              createdAt: now(),
+              trace,
+              span,
+            }
             for (const [name, value] of Object.entries(params)) {
-              const table = fields[name]
+              const table = fields[name] as TableAPI<string, TableProperties>
               if (table) {
                 fieldsParams.push({ table, value, name })
               } else {
-                ;(entryParams as Record<string, unknown>)[name] = value
+                entryParams[name] = value
               }
             }
 
-            const entryId = insertEntry(entryParams as any)
+            const entryId = insertEntry(
+              entryParams as Parameters<typeof insertEntry>[0],
+            )
             for (const { table, value, name } of fieldsParams) {
-              ;(table as any).insert({ entryId, [name]: value })
+              table.insert({ entryId, [name]: value })
             }
 
             return entryId
           }
           : (params: EntryInsertParams<typeof k, R>) => {
-            const context = requestContext.getStore()
-            const trace = context?.trace || startTime
-            const span = context?.span || null as unknown as number
+            const { trace, span } = getContext()
             return insertEntry(
-              { trace, span, ...params, type, createdAt: now() } as any,
+              { trace, span, ...params, type, createdAt: now() } as Record<
+                string,
+                unknown
+              > as Parameters<typeof insertEntry>[0],
             )
           },
       ]
