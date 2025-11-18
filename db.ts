@@ -18,6 +18,17 @@ import { respond } from './response.ts'
 import { APP_ENV, ENV } from './env.ts'
 
 const dbPath = ENV('DATABASE_PATH', ':memory:')
+/**
+ * The main database connection.
+ * It is a singleton instance of the `Database` class from the `@db/sqlite` module.
+ *
+ * @example
+ * ```ts
+ * import { db } from './db.ts';
+ *
+ * const result = db.query('SELECT * FROM users');
+ * ```
+ */
 export const db: Database = new Database(dbPath)
 
 // MEMORY -> possible corruption on crash during COMMIT
@@ -30,6 +41,9 @@ if (dbPath === 'prod') {
   // PRAGMA wal_autocheckpoint = 0 -- only activate this if high volume
 }
 
+/**
+ * A mapping of database type names to their corresponding JavaScript types.
+ */
 export type DBTypes = {
   TEXT: string
   JSON: unknown
@@ -46,6 +60,20 @@ type ColDef = {
   join?: Table
 }
 
+/**
+ * Defines the structure of a database table's columns.
+ *
+ * @example
+ * ```ts
+ * import type { TableProperties } from './db.ts';
+ *
+ * const userProperties: TableProperties = {
+ *   id: { type: 'INTEGER', primary: true },
+ *   name: { type: 'TEXT' },
+ *   email: { type: 'TEXT', optional: true },
+ * };
+ * ```
+ */
 export type TableProperties = Record<string, ColDef>
 type Table = { name: string; properties: TableProperties }
 type PrimaryKeys<T> = MatchKeys<T, { primary: true }>
@@ -72,6 +100,22 @@ type FlattenProperties<T extends TableProperties> = Expand<
   >
 >
 
+/**
+ * Represents a row from a database table, with type inference based on the table properties.
+ *
+ * @example
+ * ```ts
+ * import { createTable, type Row } from './db.ts';
+ *
+ * const users = createTable('users', {
+ *   id: { type: 'INTEGER', primary: true },
+ *   name: { type: 'TEXT' },
+ * });
+ *
+ * type UserRow = Row<typeof users.properties>;
+ * // UserRow is equivalent to: { id: number; name: string; }
+ * ```
+ */
 export type Row<
   P extends TableProperties,
   K extends keyof FlattenProperties<P> = keyof FlattenProperties<P>,
@@ -79,20 +123,62 @@ export type Row<
 
 const isPrimary = ([_, def]: [string, ColDef]) => def.primary
 
+/**
+ * The API returned by `createTable`, providing methods to interact with a specific database table.
+ */
 export type TableAPI<N extends string, P extends TableProperties> = {
+  /** The name of the table. */
   name: N
+  /** The properties of the table's columns. */
   properties: P
+  /**
+   * Inserts a new row into the table.
+   * @param entries - The data to insert.
+   * @returns The ID of the newly inserted row.
+   */
   insert: (entries: InferInsertType<P>) => number
+  /**
+   * Updates an existing row in the table.
+   * @param entries - The data to update, including the primary key.
+   * @returns The number of rows affected.
+   */
   update: (
     entries: Expand<
       & { [K in PrimaryKeys<P>]: DBTypes[P[K]['type']] }
       & Partial<InferInsertType<P>>
     >,
   ) => number
+  /**
+   * Checks if a row with the given ID exists.
+   * @param id - The ID to check.
+   * @returns `true` if the row exists, `false` otherwise.
+   */
   exists: (id: number) => boolean
+  /**
+   * Retrieves a single row by its ID.
+   * @param id - The ID of the row to retrieve.
+   * @returns The row data, or `undefined` if not found.
+   */
   get: (id: number) => Row<P, keyof FlattenProperties<P>> | undefined
+  /**
+   * Retrieves a single row by its ID, throwing an error if not found.
+   * @param id - The ID of the row to retrieve.
+   * @returns The row data.
+   * @throws {respond.NotFoundError} if the row is not found.
+   */
   require: (id: number) => Row<P, keyof FlattenProperties<P>>
+  /**
+   * Asserts that a row with the given ID exists, throwing an error if not.
+   * @param id - The ID to check.
+   * @throws {respond.NotFoundError} if the row is not found.
+   */
   assert: (id: number) => void
+  /**
+   * Executes a custom SQL query.
+   * @param sqlArr - The SQL query as a template literal.
+   * @param vars - The parameters to bind to the query.
+   * @returns An object with `get` and `all` methods to retrieve the results.
+   */
   sql: <
     K extends keyof FlattenProperties<P>,
     T extends BindParameters | BindValue | undefined,
@@ -102,6 +188,26 @@ export type TableAPI<N extends string, P extends TableProperties> = {
   }
 }
 
+/**
+ * Creates a new database table and returns an API for interacting with it.
+ *
+ * @param name - The name of the table.
+ * @param properties - The column definitions for the table.
+ * @returns A table API object.
+ *
+ * @example
+ * ```ts
+ * import { createTable } from './db.ts';
+ *
+ * const users = createTable('users', {
+ *   id: { type: 'INTEGER', primary: true },
+ *   name: { type: 'TEXT' },
+ * });
+ *
+ * const newUserId = users.insert({ name: 'Alice' });
+ * const user = users.get(newUserId);
+ * ```
+ */
 export const createTable = <N extends string, P extends TableProperties>(
   name: N,
   properties: P,
@@ -232,6 +338,20 @@ export const createTable = <N extends string, P extends TableProperties>(
   return { name, insert, update, exists, get, require, assert, sql, properties }
 }
 
+/**
+ * A template literal tag for executing arbitrary SQL queries.
+ *
+ * @param sqlArr - The SQL query as a template literal.
+ * @param vars - The parameters to bind to the query.
+ * @returns An object with methods to retrieve results (`get`, `all`, `value`) or execute the query (`run`).
+ *
+ * @example
+ * ```ts
+ * import { sql } from './db.ts';
+ *
+ * const result = sql`SELECT * FROM users WHERE id = ${1}`.get();
+ * ```
+ */
 export const sql = <
   T extends { [k in string]: unknown } | undefined,
   P extends BindValue | BindParameters | undefined,
@@ -251,6 +371,24 @@ export const sql = <
   }
 }
 
+/**
+ * Creates a restore point for the database, for use in testing environments.
+ * This function will throw an error if called in a production environment.
+ *
+ * @returns A function that, when called, restores the database to the point when `makeRestorePoint` was called.
+ *
+ * @example
+ * ```ts
+ * import { makeRestorePoint, users } from './db.ts';
+ *
+ * const restore = makeRestorePoint();
+ *
+ * // ... perform some database operations
+ * users.insert({ name: 'test' });
+ *
+ * restore(); // database is now back to its original state
+ * ```
+ */
 export const makeRestorePoint = (): () => void => {
   if (APP_ENV === 'prod') {
     return () => {
@@ -262,6 +400,24 @@ export const makeRestorePoint = (): () => void => {
   return () => emptyDb.backup(db)
 }
 
+/**
+ * A template literal tag for creating a SQL query that checks for the existence of something.
+ *
+ * @param query - The `SELECT` clause to check for.
+ * @param args - The parameters to bind to the query.
+ * @returns A function that takes bind parameters and returns `true` if the query returns any rows, `false` otherwise.
+ *
+ * @example
+ * ```ts
+* import { sqlCheck, users } from './db.ts';
+ *
+ * const userExists = sqlCheck`FROM users WHERE id = :id`;
+ *
+ * if (userExists({ id: 1 })) {
+ *   console.log('User 1 exists!');
+ * }
+ * ```
+ */
 export const sqlCheck = <T extends BindValue | BindParameters>(
   query: TemplateStringsArray,
   ...args: unknown[]

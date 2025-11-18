@@ -89,6 +89,42 @@ type InsertParams<K extends string, R extends TableProperties> =
     >
     : EntryInsertParams<K, R>
 
+/**
+ * Initializes the entry system, creating tables, views, and an API for interacting with entries.
+ * Entries are a generic way to represent state changes and events in the application.
+ *
+ * @param relations - An object defining the common properties for all entries (the "star" in the schema).
+ * @param entryTypes - An object defining the different types of entries, including their specific fields and triggers.
+ * @param entryIds - An enum-like object mapping entry type names to their integer IDs.
+ * @returns An object containing the entry API, including `insert`, `archive`, `view`, and `type` for interacting with entries.
+ *
+ * @example
+ * ```ts
+ * import { initEntries } from './entries.ts';
+ *
+ * const relations = {
+ *   userId: { type: 'INTEGER' },
+ * };
+ *
+ * const entryTypes = {
+ *   USER_LOGIN: {
+ *     userId: 'The user who logged in',
+ *   },
+ *   USER_LOGOUT: {
+ *     userId: 'The user who logged out',
+ *   },
+ * };
+ *
+ * const entryIds = {
+ *   USER_LOGIN: 1,
+ *   USER_LOGOUT: 2,
+ * };
+ *
+ * const entries = initEntries(relations, entryTypes, entryIds);
+ *
+ * const loginEntryId = entries.insert.USER_LOGIN({ userId: 123 });
+ * ```
+ */
 export const initEntries = <
   const R extends TableProperties,
   const ET extends { [K: string]: EntryTypeDef<R> },

@@ -11,16 +11,27 @@
  * @module Server
  *
  * @example
- * import { server } from './server.ts'
+ * ```ts
+ * import { server } from './server.ts';
+ * import { makeRouter, route } from './router-server.ts';
+ * import { logger } from './log.ts';
+ *
+ * const log = await logger({});
+ * const router = makeRouter(log, {
+ *   'GET/': route({
+ *     fn: () => new Response('Hello World!'),
+ *   }),
+ * });
  *
  * // Create the handler
  * const handler = server({
- *   log: console,
- *   routeHandler: () => new Response('Hello World!'),
- * })
+ *   log,
+ *   routeHandler: router,
+ * });
  *
  * // Launch (Deno example)
- * Deno.serve(handler)
+ * Deno.serve(handler);
+ * ```
  */
 
 import { getCookies, setCookie } from '@std/http/cookie'
@@ -31,6 +42,14 @@ import { now } from './time.ts'
 import type { Awaitable } from './types.ts'
 
 type Handler = (ctx: RequestContext) => Awaitable<Response>
+/**
+ * Creates a server request handler that wraps a route handler with logging, error handling, and context creation.
+ *
+ * @param options - The server configuration.
+ * @param options.routeHandler - The router function to handle incoming requests.
+ * @param options.log - A logger instance.
+ * @returns An async function that takes a `Request` and returns a `Response`.
+ */
 export const server = (
   { routeHandler, log }: { routeHandler: Handler; log: Log },
 ) => {

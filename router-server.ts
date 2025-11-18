@@ -16,8 +16,19 @@ import type { Log } from './log.ts'
 import type { RequestContext } from './context.ts'
 import type { Awaitable, IsUnknown, Nullish } from './types.ts'
 
-// Supported HTTP methods
+/**
+ * The supported HTTP methods.
+ */
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+/**
+ * A route pattern string, combining an HTTP method and a URL path.
+ *
+ * @example
+ * ```
+ * 'GET/users'
+ * 'POST/users'
+ * ```
+ */
 export type RoutePattern = `${HttpMethod}/${string}`
 
 type RequestHandler = (
@@ -41,6 +52,13 @@ type Handler<Session, In extends Def | undefined, Out extends Def | undefined> =
     ) => Respond<Asserted<Out>>
   }
 
+/**
+ * A declaration function for creating a route handler.
+ * This is primarily used for type inference and doesn't have any runtime logic.
+ *
+ * @param h - The route handler definition.
+ * @returns The same handler definition.
+ */
 export declare const route: <
   Session,
   In extends Def | undefined,
@@ -77,6 +95,32 @@ const sensitiveData = (
   return redactedPayload || (logPayload as Record<string, unknown>)
 }
 
+/**
+ * Creates a router function from a set of route definitions.
+ *
+ * @param log - A logger instance.
+ * @param defs - An object where keys are route patterns and values are route handlers.
+ * @param sensitiveKeys - A list of keys to redact from logs.
+ * @returns A router function that takes a `RequestContext` and returns a `Response`.
+ *
+ * @example
+ * ```ts
+ * import { makeRouter, route } from './router-server.ts';
+ * import { logger } from './log.ts';
+ * import { string } from './validator.ts';
+ *
+ * const log = await logger({});
+ * const routes = {
+ *   'GET/hello': route({
+ *     input: { name: string() },
+ *     output: { message: string() },
+ *     fn: (_, { name }) => ({ message: `Hello, ${name}!` }),
+ *   }),
+ * };
+ *
+ * const router = makeRouter(log, routes);
+ * ```
+ */
 export const makeRouter = <
   T extends Record<
     RoutePattern,

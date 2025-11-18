@@ -33,10 +33,17 @@ type LogFunction = (
 ) => void
 type BoundLogFunction = (event: string, props?: Record<string, unknown>) => void
 
+/**
+ * Represents the logger interface, with methods for each log level.
+ */
 export interface Log extends LogFunction {
+  /** Logs an error event. */
   error: BoundLogFunction
+  /** Logs a debug event. */
   debug: BoundLogFunction
+  /** Logs a warning event. */
   warn: BoundLogFunction
+  /** Logs an info event. */
   info: BoundLogFunction
 }
 
@@ -92,6 +99,28 @@ const bind = (log: LogFunction) =>
     info: log.bind(null, 'info'),
   }) as Log
 
+/**
+ * Initializes and returns a logger instance.
+ * The logger's behavior depends on the application environment (`APP_ENV`).
+ * In 'prod', it batches logs and sends them to a remote devtool service.
+ * In 'dev', it logs to the console with pretty colors and call chain information.
+ * In 'test', it logs to the console with timestamps.
+ *
+ * @param options - Configuration options for the logger.
+ * @returns A promise that resolves to a logger instance.
+ *
+ * @example
+ * ```ts
+ * import { logger } from './log.ts';
+ *
+ * const log = await logger({
+ *   filters: new Set(['noisy_event']),
+ * });
+ *
+ * log.info('Application started');
+ * log.error('Something went wrong', { error: new Error('details') });
+ * ```
+ */
 export const logger = async ({
   filters,
   batchInterval = 5000,
@@ -100,11 +129,17 @@ export const logger = async ({
   logToken = DEVTOOL_TOKEN,
   version = CI_COMMIT_SHA,
 }: {
-  logUrl?: string // default to ENV: DEVTOOL_URL
-  logToken?: string // default to ENV: DEVTOOL_TOKEN
-  version?: string // default to ENV: CI_COMMIT_SHA or `git rev-parse HEAD` if not in prod
+  /** The URL of the devtool service to send logs to (prod only). Defaults to `DEVTOOL_URL` env var. */
+  logUrl?: string
+  /** The authentication token for the devtool service (prod only). Defaults to `DEVTOOL_TOKEN` env var. */
+  logToken?: string
+  /** The version of the application, typically a git commit SHA. Defaults to `CI_COMMIT_SHA` env var or `git rev-parse HEAD`. */
+  version?: string
+  /** The interval in milliseconds to batch and send logs (prod only). */
   batchInterval?: number
+  /** The maximum number of logs to batch before sending (prod only). */
   maxBatchSize?: number
+  /** A set of event names to filter out and not log. */
   filters?: Set<string>
 }): Promise<Log> => {
   let logBatch: unknown[] = []

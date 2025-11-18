@@ -15,6 +15,26 @@ const getVersionFromFile = (filename: string) => {
   return Number(match[1])
 }
 
+/**
+ * Runs database migrations from a specified directory.
+ * Migrations are applied in order based on the version number in their filename.
+ * It uses the `user_version` pragma in SQLite to keep track of the current database version.
+ *
+ * @param migrationsPath - The path to the directory containing the migration files.
+ *
+ * @example
+ * ```ts
+ * // migrations/001-initial.ts
+ * export function run(sql) {
+ *   sql`CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);`.run();
+ * }
+ *
+ * // main.ts
+ * import { runMigrations } from './migration.ts';
+ *
+ * await runMigrations('./migrations');
+ * ```
+ */
 export const runMigrations = async (migrationsPath: string) => {
   console.log('🚀 Starting migration process...')
 

@@ -35,7 +35,25 @@ const json = (data?: unknown, init?: ResponseInit) => {
   return new Response(JSON.stringify(data), init)
 }
 
+/**
+ * A custom error class that encapsulates a `Response` object.
+ * This is the base class for all HTTP errors created by the `respond` object.
+ *
+ * @example
+ * ```ts
+ * import { ResponseError, respond } from './response.ts';
+ *
+ * try {
+ *   throw new respond.NotFoundError({ message: 'User not found' });
+ * } catch (e) {
+ *   if (e instanceof ResponseError) {
+ *     // e.response is a Response object
+ *   }
+ * }
+ * ```
+ */
 export class ResponseError extends Error {
+  /** The `Response` object associated with the error. */
   public response: Response
 
   constructor(message: string, response: Response) {
@@ -110,6 +128,26 @@ type ErrorStatus = Exclude<
   StatusNotErrors
 >
 
+/**
+ * A collection of utility functions and error classes for creating standard `Response` objects.
+ *
+ * - For each HTTP status code, there is a corresponding function (e.g., `respond.OK()`, `respond.NotFound()`).
+ * - For HTTP error status codes, there is a corresponding error class (e.g., `respond.NotFoundError`).
+ *
+ * @example
+ * ```ts
+ * import { respond } from './response.ts';
+ *
+ * // Create a 200 OK response with a JSON body
+ * const okResponse = respond.OK({ message: 'Success!' });
+ *
+ * // Create a 404 Not Found response
+ * const notFoundResponse = respond.NotFound();
+ *
+ * // Throw a 400 Bad Request error
+ * throw new respond.BadRequestError({ error: 'Invalid input' });
+ * ```
+ */
 export const respond = Object.fromEntries([
   ...Object.entries(STATUS_CODE).map(([key, status]) => {
     const statusText = STATUS_TEXT[status]

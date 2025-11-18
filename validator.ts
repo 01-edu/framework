@@ -7,6 +7,7 @@
  * @module Validator
  *
  * @example
+ * ```ts
  * import { OBJ, STR, NUM, ARR, optional, type Infer } from './validator.ts'
  *
  * // 1. Define Schema
@@ -31,6 +32,7 @@
  *   const errors = User.report(data) // Returns array of failures
  *   console.log(errors)
  * }
+ * ```
  */
 
 type ValidatorFailure<T extends Def> = {
@@ -104,6 +106,9 @@ type DefBoolean = {
   description?: string
 }
 
+/**
+ * The base type for all validator definitions.
+ */
 export type DefBase =
   | DefString
   | DefNumber
@@ -127,6 +132,9 @@ type Optional<T extends Def> = T & {
 
 type AssertType<T> = (value: unknown) => T
 
+/**
+ * A validator definition, which can be a base type, an array, an object, or a union.
+ */
 export type Def<T = unknown> = T extends DefBase ? DefArray<T>
   : T extends Record<string, DefBase> ? DefObject<T>
   : DefBase
@@ -223,6 +231,10 @@ const assertBoolean = (value: unknown) => {
   throw Error(`type assertion failed`)
 }
 
+/**
+ * Creates a number validator.
+ * @param description - An optional description of the number.
+ */
 export const NUM = (description?: string) =>
   ({
     type: 'number',
@@ -231,6 +243,10 @@ export const NUM = (description?: string) =>
     report: (value: unknown) => [{ type: 'number', value, path: [] }],
   }) satisfies DefNumber
 
+/**
+ * Creates a string validator.
+ * @param description - An optional description of the string.
+ */
 export const STR = (description?: string) =>
   ({
     type: 'string',
@@ -239,6 +255,10 @@ export const STR = (description?: string) =>
     report: (value: unknown) => [{ type: 'string', value, path: [] }],
   }) satisfies DefString
 
+/**
+ * Creates a boolean validator.
+ * @param description - An optional description of the boolean.
+ */
 export const BOOL = (description?: string) =>
   ({
     type: 'boolean',
@@ -247,6 +267,10 @@ export const BOOL = (description?: string) =>
     report: (value: unknown) => [{ type: 'boolean', value, path: [] }],
   }) satisfies DefBoolean
 
+/**
+ * Makes a validator optional.
+ * @param def - The validator to make optional.
+ */
 export const optional = <T extends Def>(def: T): Optional<T> => {
   const { assert, description, ...rest } = def
   const optionalAssert: OptionalAssert<typeof assert> = (value: unknown) =>
@@ -259,6 +283,11 @@ export const optional = <T extends Def>(def: T): Optional<T> => {
   } as Optional<T>
 }
 
+/**
+ * Creates an object validator.
+ * @param properties - An object of validators for the object's properties.
+ * @param description - An optional description of the object.
+ */
 export const OBJ = <T extends Record<string, Def>>(
   properties: T,
   description?: string,
@@ -268,6 +297,11 @@ export const OBJ = <T extends Record<string, Def>>(
   return { type: 'object', properties, report, assert, description }
 }
 
+/**
+ * Creates an array validator.
+ * @param def - The validator for the array's elements.
+ * @param description - An optional description of the array.
+ */
 export const ARR = <T extends Def>(
   def: T,
   description?: string,
@@ -279,6 +313,11 @@ export const ARR = <T extends Def>(
   description,
 })
 
+/**
+ * Creates a validator for a list of predefined values.
+ * @param possibleValues - An array of allowed string or number values.
+ * @param description - An optional description of the list.
+ */
 export const LIST = <const T extends readonly (string | number)[]>(
   possibleValues: T,
   description?: string,
@@ -305,6 +344,10 @@ export const LIST = <const T extends readonly (string | number)[]>(
   description,
 })
 
+/**
+ * Creates a validator for a union of types.
+ * @param types - The validators to include in the union.
+ */
 export const UNION = <T extends readonly Def[]>(...types: T): DefUnion<T> => ({
   type: 'union',
   of: types,
