@@ -24,7 +24,7 @@ const dbPath = ENV('DATABASE_PATH', ':memory:')
  *
  * @example
  * ```ts
- * import { db } from './db.ts';
+ * import { db } from '@01edu/db';
  *
  * const result = db.query('SELECT * FROM users');
  * ```
@@ -65,7 +65,7 @@ type ColDef = {
  *
  * @example
  * ```ts
- * import type { TableProperties } from './db.ts';
+ * import type { TableProperties } from '@01edu/db';
  *
  * const userProperties: TableProperties = {
  *   id: { type: 'INTEGER', primary: true },
@@ -105,7 +105,7 @@ type FlattenProperties<T extends TableProperties> = Expand<
  *
  * @example
  * ```ts
- * import { createTable, type Row } from './db.ts';
+ * import { createTable, type Row } from '@01edu/db';
  *
  * const users = createTable('users', {
  *   id: { type: 'INTEGER', primary: true },
@@ -135,12 +135,22 @@ export type TableAPI<N extends string, P extends TableProperties> = {
    * Inserts a new row into the table.
    * @param entries - The data to insert.
    * @returns The ID of the newly inserted row.
+   *
+   * @example
+   * ```ts
+   * const newUserId = users.insert({ name: 'Alice' });
+   * ```
    */
   insert: (entries: InferInsertType<P>) => number
   /**
    * Updates an existing row in the table.
    * @param entries - The data to update, including the primary key.
    * @returns The number of rows affected.
+   *
+   * @example
+   * ```ts
+   * users.update({ id: 1, name: 'Bob' });
+   * ```
    */
   update: (
     entries: Expand<
@@ -152,12 +162,24 @@ export type TableAPI<N extends string, P extends TableProperties> = {
    * Checks if a row with the given ID exists.
    * @param id - The ID to check.
    * @returns `true` if the row exists, `false` otherwise.
+   *
+   * @example
+   * ```ts
+   * if (users.exists(1)) {
+   *   console.log('User 1 exists!');
+   * }
+   * ```
    */
   exists: (id: number) => boolean
   /**
    * Retrieves a single row by its ID.
    * @param id - The ID of the row to retrieve.
    * @returns The row data, or `undefined` if not found.
+   *
+   * @example
+   * ```ts
+   * const user = users.get(1);
+   * ```
    */
   get: (id: number) => Row<P, keyof FlattenProperties<P>> | undefined
   /**
@@ -165,12 +187,31 @@ export type TableAPI<N extends string, P extends TableProperties> = {
    * @param id - The ID of the row to retrieve.
    * @returns The row data.
    * @throws {respond.NotFoundError} if the row is not found.
+   *
+   * @example
+   * ```ts
+   * try {
+   *   const user = users.require(1);
+   * } catch (e) {
+   *   console.error(e.message); // "users not found"
+   * }
+   * ```
    */
   require: (id: number) => Row<P, keyof FlattenProperties<P>>
   /**
    * Asserts that a row with the given ID exists, throwing an error if not.
    * @param id - The ID to check.
    * @throws {respond.NotFoundError} if the row is not found.
+   *
+   * @example
+   * ```ts
+   * try {
+   *   users.assert(1);
+   *   console.log('User 1 exists.');
+   * } catch (e) {
+   *   console.error(e.message); // "users not found"
+   * }
+   * ```
    */
   assert: (id: number) => void
   /**
@@ -178,6 +219,12 @@ export type TableAPI<N extends string, P extends TableProperties> = {
    * @param sqlArr - The SQL query as a template literal.
    * @param vars - The parameters to bind to the query.
    * @returns An object with `get` and `all` methods to retrieve the results.
+   *
+   * @example
+   * ```ts
+   * const user = users.sql`SELECT * FROM users WHERE id = ${1}`.get();
+   * const allUsers = users.sql`SELECT * FROM users`.all();
+   * ```
    */
   sql: <
     K extends keyof FlattenProperties<P>,
@@ -197,7 +244,7 @@ export type TableAPI<N extends string, P extends TableProperties> = {
  *
  * @example
  * ```ts
- * import { createTable } from './db.ts';
+ * import { createTable } from '@01edu/db';
  *
  * const users = createTable('users', {
  *   id: { type: 'INTEGER', primary: true },
@@ -347,7 +394,7 @@ export const createTable = <N extends string, P extends TableProperties>(
  *
  * @example
  * ```ts
- * import { sql } from './db.ts';
+ * import { sql } from '@01edu/db';
  *
  * const result = sql`SELECT * FROM users WHERE id = ${1}`.get();
  * ```
@@ -379,7 +426,12 @@ export const sql = <
  *
  * @example
  * ```ts
- * import { makeRestorePoint, users } from './db.ts';
+ * import { makeRestorePoint, createTable } from '@01edu/db';
+ *
+ * const users = createTable('users', {
+ *   id: { type: 'INTEGER', primary: true },
+ *   name: { type: 'TEXT' },
+ * });
  *
  * const restore = makeRestorePoint();
  *
@@ -409,7 +461,12 @@ export const makeRestorePoint = (): () => void => {
  *
  * @example
  * ```ts
- * import { sqlCheck, users } from './db.ts';
+ * import { sqlCheck, createTable } from '@01edu/db';
+ *
+ * const users = createTable('users', {
+ *   id: { type: 'INTEGER', primary: true },
+ *   name: { type: 'TEXT' },
+ * });
  *
  * const userExists = sqlCheck`FROM users WHERE id = :id`;
  *

@@ -100,7 +100,7 @@ type InsertParams<K extends string, R extends TableProperties> =
  *
  * @example
  * ```ts
- * import { initEntries } from './entries.ts';
+ * import { initEntries } from '@01edu/entries';
  *
  * const relations = {
  *   userId: { type: 'INTEGER' },
@@ -123,6 +123,7 @@ type InsertParams<K extends string, R extends TableProperties> =
  * const entries = initEntries(relations, entryTypes, entryIds);
  *
  * const loginEntryId = entries.insert.USER_LOGIN({ userId: 123 });
+ * entries.archive(loginEntryId);
  * ```
  */
 export const initEntries = <

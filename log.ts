@@ -111,7 +111,7 @@ const bind = (log: LogFunction) =>
  *
  * @example
  * ```ts
- * import { logger } from './log.ts';
+ * import { logger } from '@01edu/log';
  *
  * const log = await logger({
  *   filters: new Set(['noisy_event']),

@@ -12,9 +12,9 @@
  *
  * @example
  * ```ts
- * import { server } from './server.ts';
- * import { makeRouter, route } from './router-server.ts';
- * import { logger } from './log.ts';
+ * import { server } from '@01edu/server';
+ * import { makeRouter, route } from '@01edu/router-server';
+ * import { logger } from '@01edu/log';
  *
  * const log = await logger({});
  * const router = makeRouter(log, {

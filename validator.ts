@@ -8,7 +8,7 @@
  *
  * @example
  * ```ts
- * import { OBJ, STR, NUM, ARR, optional, type Infer } from './validator.ts'
+ * import { OBJ, STR, NUM, ARR, optional, type Asserted } from '@01edu/validator'
  *
  * // 1. Define Schema
  * const User = OBJ({
@@ -21,7 +21,7 @@
  * })
  *
  * // 2. Infer Type
- * type User = Infer<typeof User>
+ * type User = Asserted<typeof User>
  * // { id: number; name: string; tags: string[]; meta?: { active: number } }
  *
  * // 3. Validate
@@ -138,6 +138,25 @@ type AssertType<T> = (value: unknown) => T
 export type Def<T = unknown> = T extends DefBase ? DefArray<T>
   : T extends Record<string, DefBase> ? DefObject<T>
   : DefBase
+
+/**
+ * Infers the asserted type from a validator definition.
+ *
+ * @template T - The validator definition.
+ * @example
+ * ```ts
+ * import { OBJ, STR, NUM, type Asserted } from './validator.ts';
+ *
+ * const User = OBJ({
+ *   id: NUM(),
+ *   name: STR(),
+ * });
+ *
+ * type UserType = Asserted<typeof User>;
+ * // { id: number; name: string; }
+ * ```
+ */
+export type Asserted<T> = [T] extends [Def] ? ReturnType<T['assert']> : void
 
 const reportObject = <T extends Record<string, Def>>(properties: T) => {
   const body = [

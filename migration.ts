@@ -30,7 +30,7 @@ const getVersionFromFile = (filename: string) => {
  * }
  *
  * // main.ts
- * import { runMigrations } from './migration.ts';
+ * import { runMigrations } from '@01edu/migration';
  *
  * await runMigrations('./migrations');
  * ```

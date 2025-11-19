@@ -51,13 +51,36 @@ if (APP_ENV !== 'dev' && APP_ENV !== 'prod' && APP_ENV !== 'test') {
 
 /**
  * The git commit SHA of the current build, typically provided by a CI/CD system.
+ *
+ * @example
+ * ```ts
+ * import { CI_COMMIT_SHA } from './env.ts';
+ *
+ * console.log(`Build version: ${CI_COMMIT_SHA}`);
+ * ```
  */
 export const CI_COMMIT_SHA: string = ENV('CI_COMMIT_SHA', '')
 /**
  * An authentication token for a developer tool service.
+ *
+ * @example
+ * ```ts
+ * import { DEVTOOL_TOKEN } from './env.ts';
+ *
+ * const headers = {
+ *   'Authorization': `Bearer ${DEVTOOL_TOKEN}`,
+ * };
+ * ```
  */
 export const DEVTOOL_TOKEN: string = ENV('DEVTOOL_TOKEN', '')
 /**
  * The URL for a developer tool service.
+ *
+ * @example
+ * ```ts
+ * import { DEVTOOL_URL } from './env.ts';
+ *
+ * fetch(`${DEVTOOL_URL}/api/status`);
+ * ```
  */
 export const DEVTOOL_URL: string = ENV('DEVTOOL_URL', '')

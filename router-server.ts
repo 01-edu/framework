@@ -10,11 +10,11 @@
  * @module
  */
 
-import { respond, ResponseError } from './response.ts'
-import type { Def } from './validator.ts'
-import type { Log } from './log.ts'
 import type { RequestContext } from './context.ts'
+import type { Log } from './log.ts'
+import { respond, ResponseError } from './response.ts'
 import type { Awaitable, IsUnknown, Nullish } from './types.ts'
+import type { Asserted, Def } from './validator.ts'
 
 /**
  * The supported HTTP methods.
@@ -35,7 +35,6 @@ type RequestHandler = (
   ctx: RequestContext & { session: unknown },
 ) => Awaitable<Response>
 type Respond<T> = Awaitable<T | Response>
-type Asserted<T> = [T] extends [Def] ? ReturnType<T['assert']> : void
 
 type Authorized<Session> = IsUnknown<Session> extends true ? RequestContext
   : RequestContext & { session: Session }
@@ -58,6 +57,18 @@ type Handler<Session, In extends Def | undefined, Out extends Def | undefined> =
  *
  * @param h - The route handler definition.
  * @returns The same handler definition.
+ *
+ * @example
+ * ```ts
+ * import { route } from '@01edu/router-server';
+ * import { STR } from '@01edu/validator';
+ *
+ * const helloRoute = route({
+ *   input: { name: STR() },
+ *   output: { message: STR() },
+ *   fn: (_, { name }) => ({ message: `Hello, ${name}!` }),
+ * });
+ * ```
  */
 export declare const route: <
   Session,
@@ -105,15 +116,15 @@ const sensitiveData = (
  *
  * @example
  * ```ts
- * import { makeRouter, route } from './router-server.ts';
- * import { logger } from './log.ts';
- * import { string } from './validator.ts';
+ * import { makeRouter, route } from '@01edu/router-server';
+ * import { logger } from '@01edu/log';
+ * import { STR } from '@01edu/validator';
  *
  * const log = await logger({});
  * const routes = {
  *   'GET/hello': route({
- *     input: { name: string() },
- *     output: { message: string() },
+ *     input: { name: STR() },
+ *     output: { message: STR() },
  *     fn: (_, { name }) => ({ message: `Hello, ${name}!` }),
  *   }),
  * };

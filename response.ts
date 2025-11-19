@@ -41,7 +41,7 @@ const json = (data?: unknown, init?: ResponseInit) => {
  *
  * @example
  * ```ts
- * import { ResponseError, respond } from './response.ts';
+ * import { ResponseError, respond } from '@01edu/response';
  *
  * try {
  *   throw new respond.NotFoundError({ message: 'User not found' });
@@ -136,7 +136,7 @@ type ErrorStatus = Exclude<
  *
  * @example
  * ```ts
- * import { respond } from './response.ts';
+ * import { respond } from '@01edu/response';
  *
  * // Create a 200 OK response with a JSON body
  * const okResponse = respond.OK({ message: 'Success!' });

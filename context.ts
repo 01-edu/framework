@@ -34,7 +34,7 @@ export type RequestContext = {
  *
  * @example
  * ```ts
- * import { getContext } from './context.ts';
+ * import { getContext } from '@01edu/context';
  *
  * const context = getContext();
  * console.log(context.url.pathname);
@@ -46,7 +46,7 @@ export type GetContext = () => RequestContext
  *
  * @example
  * ```ts
- * import { newContext } from './context.ts';
+ * import { newContext } from '@01edu/context';
  *
  * const context = newContext('/users/123');
  * console.log(context.url.pathname);
@@ -63,7 +63,7 @@ export type NewContext = (
  *
  * @example
  * ```ts
- * import { runContext, newContext } from './context.ts';
+ * import { runContext, newContext } from '@01edu/context';
  *
  * const context = newContext('/');
  * runContext(context, () => {
@@ -86,7 +86,7 @@ export type RunContext = <X = unknown>(
  *
  * @example
  * ```ts
- * import { newContext } from './context.ts';
+ * import { newContext } from '@01edu/context';
  *
  * const context = newContext('/users/123', { resource: 'user-details' });
  * console.log(context.url.pathname);
@@ -122,7 +122,7 @@ const requestContext = new AsyncLocalStorage<RequestContext>()
  *
  * @example
  * ```ts
- * import { getContext } from './context.ts';
+ * import { getContext } from '@01edu/context';
  *
  * function logPath() {
  *   const { url } = getContext();
@@ -143,7 +143,7 @@ export const getContext: GetContext = () =>
  *
  * @example
  * ```ts
- * import { runContext, newContext, getContext } from './context.ts';
+ * import { runContext, newContext, getContext } from '@01edu/context';
  *
  * const context = newContext('/about');
  *
