@@ -1,11 +1,11 @@
 ## Example
 
 ```ts
-import type { RequestContext } from './context.ts'
-import { logger } from './log.ts'
-import { server } from './server.ts'
-import { NUM, STR } from './validator.ts'
-import { makeRouter, route } from './router-server.ts'
+import type { RequestContext } from '@01edu/framework/context'
+import { logger } from '@01edu/framework/log'
+import { server } from '@01edu/framework/server'
+import { NUM, STR } from '@01edu/framework/validator'
+import { makeRouter, route } from '@01edu/framework/router-server'
 
 // The session is anything you want, it's optional, defaults to undefined
 type Session = {

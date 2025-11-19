@@ -25,8 +25,6 @@ export type RequestContext = {
   readonly trace: number
   /** An optional identifier for a specific span within a trace, for more granular performance monitoring. */
   readonly span: number | undefined
-  /** The name of the resource being accessed, for logging and metrics. */
-  resource: string | undefined
 }
 
 /**
@@ -88,11 +86,9 @@ export type RunContext = <X = unknown>(
  * ```ts
  * import { newContext } from '@01edu/context';
  *
- * const context = newContext('/users/123', { resource: 'user-details' });
+ * const context = newContext('/users/123');
  * console.log(context.url.pathname);
  * // => "/users/123"
- * console.log(context.resource);
- * // => "user-details"
  * ```
  */
 export const newContext: NewContext = (
@@ -105,7 +101,6 @@ export const newContext: NewContext = (
     trace: startTime,
     cookies: {},
     span: undefined,
-    resource: undefined,
     url,
     req,
     ...extra,

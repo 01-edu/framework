@@ -93,7 +93,6 @@ export const server = (
       cookies,
       trace: cookies.trace ? Number(cookies.trace) : now(),
       span: now(),
-      resource: undefined,
     }
 
     const res = await runContext(ctx, handleRequest)
