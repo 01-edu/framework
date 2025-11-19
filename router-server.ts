@@ -70,13 +70,11 @@ type Handler<Session, In extends Def | undefined, Out extends Def | undefined> =
  * });
  * ```
  */
-export declare const route: <
+export const route = <
   Session,
   In extends Def | undefined,
   Out extends Def | undefined,
->(
-  h: Handler<Session, In, Out>,
-) => Handler<Session, In, Out>
+>(h: Handler<Session, In, Out>) => h
 
 const getPayloadParams = (ctx: RequestContext) =>
   Object.fromEntries(ctx.url.searchParams)

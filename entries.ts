@@ -20,6 +20,23 @@ import { getContext } from './context.ts'
 import { now } from './time.ts'
 import type { Expand } from './types.ts'
 
+type RelationTable<T extends string> = { name: T; properties: TableProperties }
+type RelToTableProperties<R> = R extends RelationTable<string>[] ? {
+    [K in R[number]['name']]: {
+      type: 'INTEGER'
+      join: R[number]
+      optional: true
+    }
+  }
+  : R extends Record<string, RelationTable<string>> ? {
+      [K in keyof R]: {
+        type: 'INTEGER'
+        join: R[K]
+        optional: true
+      }
+    }
+  : never
+
 type EntryListenerGeneric<T extends TableProperties> = {
   controller: ReadableStreamDefaultController
 } & { [K in keyof T]: DBTypes[T[K]['type']] }
@@ -100,51 +117,76 @@ type InsertParams<K extends string, R extends TableProperties> =
  *
  * @example
  * ```ts
+ * import { createTable } from '@01edu/db';
  * import { initEntries } from '@01edu/entries';
  *
- * const relations = {
- *   userId: { type: 'INTEGER' },
- * };
- *
- * const entryTypes = {
- *   USER_LOGIN: {
- *     userId: 'The user who logged in',
- *   },
- *   USER_LOGOUT: {
- *     userId: 'The user who logged out',
- *   },
- * };
+ * const Users = createTable('user', {
+ *   userId: { type: 'INTEGER', primary: true },
+ *   userName: { type: 'TEXT', optional: true },
+ *   userLogin: { type: 'TEXT' },
+ *   userEmail: { type: 'TEXT' },
+ * })
  *
  * const entryIds = {
  *   USER_LOGIN: 1,
  *   USER_LOGOUT: 2,
- * };
+ * } as const;
  *
- * const entries = initEntries(relations, entryTypes, entryIds);
+ * const entries = initEntries([Users], entryIds, {
+ *   USER_LOGIN: {
+ *     user: 'The user who logged in',
+ *   },
+ *   USER_LOGOUT: {
+ *     user: 'The user who logged out',
+ *     trigger: (entry, sub) => entry.user === sub.user,
+ *   },
+ * });
+ *
+ * // If you need to rename your tables you can also use this form:
+ * const entries = initEntries({ userId: Users }, entryIds, { /*...*\/ });
  *
  * const loginEntryId = entries.insert.USER_LOGIN({ userId: 123 });
  * entries.archive(loginEntryId);
  * ```
  */
 export const initEntries = <
-  const R extends TableProperties,
-  const ET extends { [K: string]: EntryTypeDef<R> },
-  const ID extends Record<keyof ET & string, number>, // this is an enum
->(relations: R, entryTypes: ET, entryIds: ID): {
+  const ID extends Record<keyof ET & string, number>,
+  const R extends
+    | RelationTable<string>[]
+    | Record<string, RelationTable<string>>,
+  const ET extends { [K: string]: EntryTypeDef<RelToTableProperties<R>> },
+>(entryIds: ID, relations: R, entryTypes: ET): {
   type: ID
-  insertListeners: Set<EntryListenerGeneric<R>>
+  insertListeners: Set<EntryListenerGeneric<RelToTableProperties<R>>>
   view: { [K in (keyof ET & string)]: `entry_${Lowercase<K>}` }
   archive: (id: number) => void
   insert: {
-    [K in (keyof ET & string)]: (params: InsertParams<K, R>) => number
+    [K in (keyof ET & string)]: (
+      params: InsertParams<K, RelToTableProperties<R>>,
+    ) => number
   }
 } => {
-  type EntryTrigger = EntryTriggerGeneric<R>
-  type EntryListener = EntryListenerGeneric<R>
+  type Relations = RelToTableProperties<R>
+  type EntryTrigger = EntryTriggerGeneric<Relations>
+  type EntryListener = EntryListenerGeneric<Relations>
   type EntryName = keyof ET & string
 
+  const relProperties = Object.fromEntries(
+    Array.isArray(relations)
+      ? relations.map((rel) => [rel.name, {
+        type: 'INTEGER',
+        join: rel,
+        optional: true,
+      }])
+      : Object.entries(relations).map(([k, rel]) => [k, {
+        type: 'INTEGER',
+        join: rel,
+        optional: true,
+      }]),
+  ) as Relations
+
   const EntryInternal = createTable('entryInternal', {
-    ...relations,
+    ...relProperties,
     ...commonEntryProperties,
   })
 
@@ -217,7 +259,7 @@ export const initEntries = <
       return [
         k,
         Object.keys(fields).length
-          ? (params: EntryInsertParams<typeof k, R>) => {
+          ? (params: EntryInsertParams<typeof k, Relations>) => {
             const { trace, span } = getContext()
             const fieldsParams: {
               table: TableAPI<string, TableProperties>
@@ -248,7 +290,7 @@ export const initEntries = <
 
             return entryId
           }
-          : (params: EntryInsertParams<typeof k, R>) => {
+          : (params: EntryInsertParams<typeof k, Relations>) => {
             const { trace, span } = getContext()
             return insertEntry(
               { trace, span, ...params, type, createdAt: now() } as Record<
@@ -260,7 +302,7 @@ export const initEntries = <
       ]
     }),
   ) as unknown as {
-    [K in EntryName]: (params: InsertParams<K, R>) => number
+    [K in EntryName]: (params: InsertParams<K, Relations>) => number
   }
 
   const getTypeName = TypeInternal.sql<'typeName', number>`
