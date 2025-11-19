@@ -146,7 +146,7 @@ export const getContext: GetContext = () =>
  * import { runContext, newContext, getContext } from './context.ts';
  *
  * const context = newContext('/about');
-*
+ *
  * runContext(context, () => {
  *   const currentContext = getContext();
  *   console.log(currentContext.url.pathname); // => "/about"

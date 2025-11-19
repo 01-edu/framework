@@ -409,7 +409,7 @@ export const makeRestorePoint = (): () => void => {
  *
  * @example
  * ```ts
-* import { sqlCheck, users } from './db.ts';
+ * import { sqlCheck, users } from './db.ts';
  *
  * const userExists = sqlCheck`FROM users WHERE id = :id`;
  *

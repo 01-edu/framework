@@ -11,11 +11,13 @@
  *
  * @template T - The type to make recursively read-only.
  * @example
+ * ```ts
  * interface User {
  *   profile: {
  *     name: string;
  *   }
  * }
+ * ```
  *
  * // Standard Readonly: user.profile is readonly, but user.profile.name is mutable.
  * // This Readonly: user.profile.name is also readonly.
@@ -64,9 +66,11 @@ export type Nullish = null | undefined | void
  *
  * @template T - The type to check.
  * @example
+ * ```ts
  * type A = IsUnknown<unknown>; // true
  * type B = IsUnknown<any>;     // false (usually)
  * type C = IsUnknown<string>;  // false
+ * ```
  */
 export type IsUnknown<T> = unknown extends T
   ? ([T] extends [unknown] ? true : false)
@@ -80,8 +84,10 @@ export type IsUnknown<T> = unknown extends T
  * @template U - The union type (e.g., `A | B`).
  * @returns The intersection type (e.g., `A & B`).
  * @example
+ * ```ts
  * type Union = { a: string } | { b: number };
  * type Intersection = UnionToIntersection<Union>; // { a: string } & { b: number }
+ * ```
  */
 export type UnionToIntersection<U> = (
   U extends unknown ? (k: U) => void : never
@@ -95,6 +101,7 @@ export type UnionToIntersection<U> = (
  * @template E - The type condition to match against values.
  * @returns A union of keys from `T`.
  * @example
+ * ```ts
  * interface Item {
  *   id: number;
  *   name: string;
@@ -104,6 +111,7 @@ export type UnionToIntersection<U> = (
  *
  * // Returns "name" | "tags"
  * type StringKeys = MatchKeys<Item, string | string[]>;
+ * ```
  */
 export type MatchKeys<T, E> = {
   [K in keyof T]: T[K] extends E ? K : never

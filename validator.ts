@@ -216,17 +216,17 @@ const assertArray = <T extends Def['assert']>(assert: T) => (a: unknown) => {
   return a as ReturnType<T>[]
 }
 
-const assertNumber = (value: unknown) => {
+const assertNumber = (value: unknown): number => {
   if (typeof value === 'number' && !isNaN(value)) return value
   throw Error(`type assertion failed`)
 }
 
-const assertString = (value: unknown) => {
+const assertString = (value: unknown): string => {
   if (typeof value === 'string') return value
   throw Error(`type assertion failed`)
 }
 
-const assertBoolean = (value: unknown) => {
+const assertBoolean = (value: unknown): boolean => {
   if (typeof value === 'boolean') return value
   throw Error(`type assertion failed`)
 }
@@ -235,37 +235,34 @@ const assertBoolean = (value: unknown) => {
  * Creates a number validator.
  * @param description - An optional description of the number.
  */
-export const NUM = (description?: string) =>
-  ({
-    type: 'number',
-    assert: assertNumber,
-    description,
-    report: (value: unknown) => [{ type: 'number', value, path: [] }],
-  }) satisfies DefNumber
+export const NUM = (description?: string): DefNumber => ({
+  type: 'number',
+  assert: assertNumber,
+  description,
+  report: (value: unknown) => [{ type: 'number', value, path: [] }],
+})
 
 /**
  * Creates a string validator.
  * @param description - An optional description of the string.
  */
-export const STR = (description?: string) =>
-  ({
-    type: 'string',
-    assert: assertString,
-    description,
-    report: (value: unknown) => [{ type: 'string', value, path: [] }],
-  }) satisfies DefString
+export const STR = (description?: string): DefString => ({
+  type: 'string',
+  assert: assertString,
+  description,
+  report: (value: unknown) => [{ type: 'string', value, path: [] }],
+})
 
 /**
  * Creates a boolean validator.
  * @param description - An optional description of the boolean.
  */
-export const BOOL = (description?: string) =>
-  ({
-    type: 'boolean',
-    assert: assertBoolean,
-    description,
-    report: (value: unknown) => [{ type: 'boolean', value, path: [] }],
-  }) satisfies DefBoolean
+export const BOOL = (description?: string): DefBoolean => ({
+  type: 'boolean',
+  assert: assertBoolean,
+  description,
+  report: (value: unknown) => [{ type: 'boolean', value, path: [] }],
+})
 
 /**
  * Makes a validator optional.
