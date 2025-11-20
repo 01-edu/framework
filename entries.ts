@@ -45,7 +45,7 @@ type EntryProperties<T extends TableProperties> = Exclude<
   Expand<
     keyof (TableAPI<string, T & typeof commonEntryProperties>)['properties']
   >,
-  'id' | 'archivedAt' | 'span' | 'trace'
+  keyof typeof commonEntryProperties
 >
 type EntryTriggerGeneric<T extends TableProperties> = (
   entry: Parameters<
@@ -86,25 +86,19 @@ const commonEntryProperties = {
   span: { type: 'REAL', optional: true },
 } as const
 
-type EntryInsert<R extends TableProperties> = Required<
-  Parameters<TableAPI<'entryInternal', R>['insert']>[0]
->
 
-type EntryInsertParams<K extends string, R extends TableProperties> = Pick<
-  EntryInsert<R>,
-  Extract<keyof EntryInsert<R>, keyof ({ [K: string]: EntryTypeDef<R> })[K]>
->
+type EntryInsertParams<R extends TableProperties, T extends EntryTypeDef<R>> = {
+  [K in Exclude<Extract<keyof T, string>, keyof typeof commonEntryProperties>]:
+    DBTypes[R[K]['type']]
+}
 type FieldParamsForEntry<T> = T extends { fields: Record<string, EntryField> }
   ? { [K in keyof T['fields']]: DBTypes[T['fields'][K]['type']] }
   : never
 
-type InsertParams<K extends string, R extends TableProperties> =
-  ({ [K: string]: EntryTypeDef<R> })[K] extends
-    { fields: Record<string, EntryField> } ? Expand<
-      & EntryInsertParams<K, R>
-      & FieldParamsForEntry<({ [K: string]: EntryTypeDef<R> })[K]>
-    >
-    : EntryInsertParams<K, R>
+type InsertParams<R extends TableProperties, E extends EntryTypeDef<R>> =
+  E extends { fields: Record<string, EntryField> }
+    ? Expand<EntryInsertParams<R, E> & FieldParamsForEntry<E>>
+    : EntryInsertParams<R, E>
 
 /**
  * Initializes the entry system, creating tables, views, and an API for interacting with entries.
@@ -132,7 +126,7 @@ type InsertParams<K extends string, R extends TableProperties> =
  *   USER_LOGOUT: 2,
  * } as const;
  *
- * const entries = initEntries([Users], entryIds, {
+ * const entries = initEntries(entryIds, [Users], {
  *   USER_LOGIN: {
  *     user: 'The user who logged in',
  *   },
@@ -143,7 +137,7 @@ type InsertParams<K extends string, R extends TableProperties> =
  * });
  *
  * // If you need to rename your tables you can also use this form:
- * const entries = initEntries({ userId: Users }, entryIds, { /*...*\/ });
+ * const entries = initEntries(entryIds, { userId: Users }, { /*...*\/ });
  *
  * const loginEntryId = entries.insert.USER_LOGIN({ userId: 123 });
  * entries.archive(loginEntryId);
@@ -162,7 +156,7 @@ export const initEntries = <
   archive: (id: number) => void
   insert: {
     [K in (keyof ET & string)]: (
-      params: InsertParams<K, RelToTableProperties<R>>,
+      params: InsertParams<RelToTableProperties<R>, ET[K]>,
     ) => number
   }
 } => {
@@ -259,7 +253,7 @@ export const initEntries = <
       return [
         k,
         Object.keys(fields).length
-          ? (params: EntryInsertParams<typeof k, Relations>) => {
+          ? (params: EntryInsertParams<Relations, ET[EntryName]>) => {
             const { trace, span } = getContext()
             const fieldsParams: {
               table: TableAPI<string, TableProperties>
@@ -290,7 +284,7 @@ export const initEntries = <
 
             return entryId
           }
-          : (params: EntryInsertParams<typeof k, Relations>) => {
+          : (params: EntryInsertParams<Relations, ET[EntryName]>) => {
             const { trace, span } = getContext()
             return insertEntry(
               { trace, span, ...params, type, createdAt: now() } as Record<
@@ -302,7 +296,7 @@ export const initEntries = <
       ]
     }),
   ) as unknown as {
-    [K in EntryName]: (params: InsertParams<K, Relations>) => number
+    [K in EntryName]: (params: InsertParams<Relations, ET[K]>) => number
   }
 
   const getTypeName = TypeInternal.sql<'typeName', number>`
