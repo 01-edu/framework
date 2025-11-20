@@ -86,10 +86,12 @@ const commonEntryProperties = {
   span: { type: 'REAL', optional: true },
 } as const
 
-type EntryInsertParams<R extends TableProperties, T extends EntryTypeDef<R>> = {
-  [K in Exclude<Extract<keyof T, string>, keyof typeof commonEntryProperties>]:
-    DBTypes[R[K]['type']]
-}
+type EntryInsertParams<R extends TableProperties, T extends EntryTypeDef<R>> =
+  Omit<
+    { [K in Extract<keyof T, string>]: DBTypes[R[K]['type']] },
+    'trigger' | 'fields'
+  >
+
 type FieldParamsForEntry<T> = T extends { fields: Record<string, EntryField> }
   ? { [K in keyof T['fields']]: DBTypes[T['fields'][K]['type']] }
   : never
