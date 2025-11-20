@@ -68,6 +68,7 @@ type ColDef = {
  * import type { TableProperties } from '@01edu/db';
  *
  * const userProperties: TableProperties = {
+ *   // for now, only 'INTEGER' can be primary
  *   id: { type: 'INTEGER', primary: true },
  *   name: { type: 'TEXT' },
  *   email: { type: 'TEXT', optional: true },

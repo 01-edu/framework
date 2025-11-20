@@ -52,7 +52,7 @@ type Handler = (ctx: RequestContext) => Awaitable<Response>
  */
 export const server = (
   { routeHandler, log }: { routeHandler: Handler; log: Log },
-): (req: Request) => Promise<Response> => {
+): (req: Request, url?: URL) => Promise<Response> => {
   const handleRequest = async (ctx: RequestContext) => {
     const logProps: Record<string, unknown> = {}
     logProps.path = `${ctx.req.method}:${ctx.url.pathname}`
@@ -80,8 +80,7 @@ export const server = (
     }
   }
 
-  return async (req: Request) => {
-    const url = new URL(req.url)
+  return async (req: Request, url = new URL(req.url)) => {
     const method = req.method
     if (method === 'OPTIONS') return respond.NoContent()
 
