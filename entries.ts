@@ -86,7 +86,6 @@ const commonEntryProperties = {
   span: { type: 'REAL', optional: true },
 } as const
 
-
 type EntryInsertParams<R extends TableProperties, T extends EntryTypeDef<R>> = {
   [K in Exclude<Extract<keyof T, string>, keyof typeof commonEntryProperties>]:
     DBTypes[R[K]['type']]
