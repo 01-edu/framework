@@ -1,7 +1,54 @@
+/**
+ * Type-safe HTTP API Client.
+ *
+ * Builds a strongly-typed client from server route definitions. For each
+ * declared route it provides:
+ * - fetch(input?, options?): Promise<Output>
+ * - signal(): a reactive RequestState wrapper powered by @preact/signals
+ *
+ * Features:
+ * - End-to-end input/output typing from your route defs
+ * - Abortable requests with `.reset()` and deduping via a shared AbortController
+ * - Helpful errors: `ErrorWithData` (JSON error payload) and `ErrorWithBody` (invalid JSON)
+ *
+ * @example Basic usage
+ * ```ts
+ * import { createApiClient } from '@01edu/router-client'
+ * import type { RoutesDefinitions } from '/api/routes.ts'
+ * // Important, only import types from your backend
+ *
+ * const api = createApiClient<RoutesDefinitions>('/api')
+ * const res = await api['GET/hello'].fetch({ name: 'Ada' })
+ * ```
+ *
+ * @example Reactive usage
+ * ```ts
+ * const hello = api['GET/hello'].signal()
+ * hello.fetch({ name: 'Ada' })
+ * hello.$.subscribe(v => console.log(v.pending, v.data, v.error))
+ * ```
+ *
+ * @module
+ */
 import { Signal } from '@preact/signals'
 import type { GenericRoutes, Handler, HttpMethod } from './router-server.ts'
 import type { Asserted } from './validator.ts'
 
+/**
+ * Error thrown when the server returns a JSON error payload.
+ * The parsed error metadata is available on `data`.
+ *
+ * @example
+ * ```ts
+ * try {
+ *   await api['POST/login'].fetch({ user, pass });
+ * } catch (e) {
+ *   if (e instanceof ErrorWithData) {
+ *     console.error(e.message, e.data);
+ *   }
+ * }
+ * ```
+ */
 export class ErrorWithData extends Error {
   public data: Record<string, unknown>
   constructor(message: string, data: Record<string, unknown>) {
@@ -11,6 +58,21 @@ export class ErrorWithData extends Error {
   }
 }
 
+/**
+ * Error thrown when the response body cannot be parsed as JSON.
+ * The raw body is available on `body`, and extra context on `data`.
+ *
+ * @example
+ * ```ts
+ * try {
+ *   await api['GET/debug'].fetch();
+ * } catch (e) {
+ *   if (e instanceof ErrorWithBody) {
+ *     console.error('Invalid JSON:', e.body, e.data);
+ *   }
+ * }
+ * ```
+ */
 export class ErrorWithBody extends ErrorWithData {
   public body: string
   constructor(body: string, data: Record<string, unknown>) {
@@ -61,6 +123,32 @@ Handler<any, infer TInput, infer TOutput>
   ? [Asserted<TInput>, Asserted<TOutput>]
   : never
 
+/**
+ * Creates a typed API client from a `GenericRoutes` declaration.
+ *
+ * Each route key maps to:
+ * - `fetch(input?, options?)`: Promise<Output>
+ * - `signal()`: reactive RequestState with `$.value`, `fetch`, `reset`, and getters
+ *
+ * @param baseUrl - Optional prefix applied to every route path (e.g. `/api`).
+ * @returns A proxy object keyed by route pattern, exposing typed `fetch` and `signal` helpers.
+ *
+ * @example
+ * ```ts
+ * import { createApiClient } from '@01edu/router-client'
+ * import type { RouteDefinitions } from '/api/routes.ts'
+ *
+ * const api = createApiClient<RouteDefinitions>('/api')
+ *
+ * // One-shot call
+ * const result = await api['GET/hello'].fetch({ name: 'Ada' })
+ *
+ * // Reactive usage
+ * const hello = api['GET/hello'].signal()
+ * hello.fetch({ name: 'Ada' })
+ * hello.$.subscribe(v => console.log(v.pending, v.data, v.error))
+ * ```
+ */
 export const createApiClient = <T extends GenericRoutes>(baseUrl = ''): {
   [K in keyof T]: {
     fetch: (
