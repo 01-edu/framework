@@ -39,7 +39,7 @@ type RelToTableProperties<R> = R extends RelationTable<string>[] ? {
 
 type EntryListenerGeneric<T extends TableProperties> = {
   controller: ReadableStreamDefaultController
-} & { [K in keyof T]: DBTypes[T[K]['type']] }
+} & Partial<{ [K in keyof T]: DBTypes[T[K]['type']] }>
 
 type EntryProperties<T extends TableProperties> = Exclude<
   Expand<
