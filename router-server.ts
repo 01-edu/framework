@@ -39,7 +39,17 @@ type Respond<T> = Awaitable<T | Response>
 type Authorized<Session> = IsUnknown<Session> extends true ? RequestContext
   : RequestContext & { session: Session }
 
-type Handler<Session, In extends Def | undefined, Out extends Def | undefined> =
+/**
+ * Descriptor for a handler that may authorize a session and convert input to output.
+ *
+ * In and Out are optional definitions (Def) or undefined. If `authorize` is provided,
+ * its result will be passed as `Authorized<Session>` to `fn`.
+ *
+ * @template Session - session type produced by `authorize` and used in `fn`
+ * @template In - input definition (Def) or undefined
+ * @template Out - output definition (Def) or undefined
+ */
+export type Handler<Session, In extends Def | undefined, Out extends Def | undefined> =
   {
     input?: In
     output?: Out

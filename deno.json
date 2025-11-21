@@ -6,7 +6,7 @@
     "@std/http": "jsr:@std/http@^1.0.22"
   },
   "name": "@01edu/framework",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "license": "MIT",
   "exports": {
     "./context": "./context.ts",
