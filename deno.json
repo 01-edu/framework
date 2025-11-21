@@ -7,7 +7,7 @@
     "@std/http": "jsr:@std/http@^1.0.22"
   },
   "name": "@01edu/framework",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "license": "MIT",
   "exports": {
     "./context": "./context.ts",
@@ -17,6 +17,7 @@
     "./log": "./log.ts",
     "./migration": "./migration.ts",
     "./response": "./response.ts",
+    "./router-client": "./router-client.ts",
     "./router-server": "./router-server.ts",
     "./server": "./server.ts",
     "./time": "./time.ts",
