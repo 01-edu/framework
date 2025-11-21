@@ -49,17 +49,20 @@ type Authorized<Session> = IsUnknown<Session> extends true ? RequestContext
  * @template In - input definition (Def) or undefined
  * @template Out - output definition (Def) or undefined
  */
-export type Handler<Session, In extends Def | undefined, Out extends Def | undefined> =
-  {
-    input?: In
-    output?: Out
-    description?: string
-    authorize?: (ctx: RequestContext, input: Asserted<In>) => Awaitable<Session>
-    fn: (
-      ctx: Authorized<Session>,
-      input: Asserted<In>,
-    ) => Respond<Asserted<Out>>
-  }
+export type Handler<
+  Session,
+  In extends Def | undefined,
+  Out extends Def | undefined,
+> = {
+  input?: In
+  output?: Out
+  description?: string
+  authorize?: (ctx: RequestContext, input: Asserted<In>) => Awaitable<Session>
+  fn: (
+    ctx: Authorized<Session>,
+    input: Asserted<In>,
+  ) => Respond<Asserted<Out>>
+}
 
 /**
  * A declaration function for creating a route handler.
@@ -114,6 +117,12 @@ const sensitiveData = (
   return redactedPayload || (logPayload as Record<string, unknown>)
 }
 
+export type GenericRoutes = Record<
+  RoutePattern,
+  // deno-lint-ignore no-explicit-any
+  Handler<any, Def | undefined, Def | undefined>
+>
+
 /**
  * Creates a router function from a set of route definitions.
  *
@@ -140,13 +149,7 @@ const sensitiveData = (
  * const router = makeRouter(log, routes);
  * ```
  */
-export const makeRouter = <
-  T extends Record<
-    RoutePattern,
-    // deno-lint-ignore no-explicit-any
-    Handler<any, Def | undefined, Def | undefined>
-  >,
->(
+export const makeRouter = <T extends GenericRoutes>(
   log: Log,
   defs: T,
   sensitiveKeys = [
