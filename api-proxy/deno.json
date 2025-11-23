@@ -1,0 +1,9 @@
+{
+  "imports": {
+    "vite": "npm:vite@^7.2.4"
+  },
+  "name": "@01edu/api-proxy",
+  "version": "0.1.2",
+  "license": "MIT",
+  "exports": { ".": "./mod.ts" }
+}

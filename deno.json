@@ -1,6 +1,14 @@
 {
   "license": "MIT",
-  "workspace": ["./api", "./db", "./time", "./types"],
+  "workspace": [
+    "./api",
+    "./db",
+    "./time",
+    "./types",
+    "./signal-router",
+    "./api-client",
+    "./api-proxy"
+  ],
   "fmt": {
     "useTabs": false,
     "lineWidth": 80,
