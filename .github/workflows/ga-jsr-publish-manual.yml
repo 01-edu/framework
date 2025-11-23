@@ -1,29 +1,24 @@
 name: Publish Selected Packages
-
 on:
   workflow_dispatch:
-    inputs:
-      api:
-        description: "Publish api"
-        default: false
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # Used for JSR authentication via OIDC
-
+      id-token: write # The OIDC ID token is used for authentication with JSR.
     steps:
       - name: 🐧 Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+        with: { fetch-depth: 0 }
 
       - name: 🦖 Set up Deno
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+          cache: true
 
       - name: 🚀 Publish selected packages
         run: |
           deno publish
-          echo "✅ Done."

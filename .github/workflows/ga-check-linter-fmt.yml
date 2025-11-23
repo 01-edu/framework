@@ -1,0 +1,32 @@
+name: 👾 Check, Lint, and Format
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  push:
+    branches: [master]
+
+jobs:
+  lint-and-format-check:
+    name: 👾 Run Check, Lint and Format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🐧 Check out repository code
+        uses: actions/checkout@v5
+        with: { fetch-depth: 0 }
+
+      - name: 🦖 Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+          cache: true
+
+      - name: 🦊 Run Types Checks
+        run: deno check
+
+      - name: 📏 Run Linter
+        run: deno lint --compact
+
+      - name: 🧙‍♂️ Run Format
+        run: deno fmt
