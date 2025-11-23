@@ -1,9 +1,7 @@
 name: Publish
-
 on:
   push:
-    branches:
-      - master
+    branches: [master]
 
 jobs:
   publish:
@@ -13,4 +11,14 @@ jobs:
       id-token: write # The OIDC ID token is used for authentication with JSR.
     steps:
       - uses: actions/checkout@v5
-      - run: npx jsr publish
+        with: { fetch-depth: 0 }
+
+      - name: Publish changed packages
+        run: |
+          # Find unique directories inside jsr/ that changed in the last commit
+          changed_dirs=$(git diff --name-only HEAD^ HEAD -- 'jsr/*' | cut -d/ -f1-2 | sort -u)
+
+          for dir in $changed_dirs; do
+            echo "Publishing $dir..."
+            (cd "$dir" && npx jsr publish)
+          done
