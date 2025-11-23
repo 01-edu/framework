@@ -5,5 +5,8 @@
   "name": "@01edu/api-client",
   "version": "0.1.0",
   "license": "MIT",
-  "exports": { ".": "./mod.ts" }
+  "exports": { ".": "./mod.ts" },
+  "compilerOptions": {
+    "lib": ["deno.ns", "DOM", "DOM.Iterable", "esnext"]
+  }
 }

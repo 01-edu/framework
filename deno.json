@@ -15,18 +15,5 @@
     "indentWidth": 2,
     "semiColons": false,
     "singleQuote": true
-  },
-  "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact",
-    "lib": [
-      "deno.window",
-      "deno.ns",
-      "ESNext",
-      "DOM",
-      "DOM.Iterable",
-      "DOM.AsyncIterable",
-      "webworker"
-    ]
   }
 }
