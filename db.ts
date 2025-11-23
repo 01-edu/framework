@@ -383,7 +383,17 @@ export const createTable = <N extends string, P extends TableProperties>(
     }
   }
 
-  return { name, insert, update, exists, get, require, assert, sql, properties }
+  return {
+    name,
+    insert,
+    update,
+    exists,
+    get,
+    require,
+    assert,
+    sql,
+    properties,
+  }
 }
 
 /**

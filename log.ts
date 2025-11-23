@@ -31,7 +31,10 @@ type LogFunction = (
   event: string,
   props?: Record<string, unknown>,
 ) => void
-type BoundLogFunction = (event: string, props?: Record<string, unknown>) => void
+type BoundLogFunction = (
+  event: string,
+  props?: Record<string, unknown>,
+) => void
 
 /**
  * Represents the logger interface, with methods for each log level.

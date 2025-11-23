@@ -100,7 +100,10 @@ const getPayloadBody = async (ctx: RequestContext) => {
 }
 
 type Route = Record<HttpMethod, RequestHandler>
-type SimpleHandler = (ctx: RequestContext, payload: unknown) => Respond<Nullish>
+type SimpleHandler = (
+  ctx: RequestContext,
+  payload: unknown,
+) => Respond<Nullish>
 
 const sensitiveData = (
   logPayload: unknown,
