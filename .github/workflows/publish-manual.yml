@@ -5,31 +5,6 @@ on:
     inputs:
       api:
         description: "Publish api"
-        type: boolean
-        default: false
-      api-client:
-        description: "Publish api-client"
-        type: boolean
-        default: false
-      api-proxy:
-        description: "Publish api-proxy"
-        type: boolean
-        default: false
-      db:
-        description: "Publish db"
-        type: boolean
-        default: false
-      signal-router:
-        description: "Publish signal-router"
-        type: boolean
-        default: false
-      time:
-        description: "Publish time"
-        type: boolean
-        default: false
-      types:
-        description: "Publish types"
-        type: boolean
         default: false
 
 jobs:
@@ -40,7 +15,7 @@ jobs:
       id-token: write # Used for JSR authentication via OIDC
 
     steps:
-      - name: Checkout code
+      - name: 🐧 Checkout code
         uses: actions/checkout@v4
 
       - name: 🦖 Set up Deno
@@ -48,20 +23,7 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Publish selected packages
+      - name: 🚀 Publish selected packages
         run: |
-          function publish() {
-            local pkg="$2"
-            if [[ "$1" == "true" ]]; then
-              echo "🚀 Publishing '$2'..."
-              (cd "$2" && deno publish)
-            fi
-          }
-
-          publish "${{inputs.api-client}}" "api-client"
-          publish "${{inputs.api-proxy}}" "api-proxy"
-          publish "${{inputs.db}}" "db"
-          publish "${{inputs.signal-router}}" "signal-router"
-          publish "${{inputs.time}}" "time"
-          publish "${{inputs.types}}" "types"
+          deno publish
           echo "✅ Done."

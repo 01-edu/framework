@@ -9,6 +9,6 @@
   "exports": {
     ".": "./mod.ts",
     "./entries": "./entries.ts",
-    "./migrations": "./migrations.ts"
+    "./migration": "./migration.ts"
   }
 }
