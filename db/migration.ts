@@ -3,7 +3,7 @@
  * @module
  */
 
-import { db, sql } from './db.ts'
+import { db, sql } from './mod.ts'
 
 const getVersionFromFile = (filename: string) => {
   const match = filename.match(/^([0-9]+)-/)

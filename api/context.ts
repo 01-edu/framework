@@ -5,8 +5,8 @@
  */
 
 import { AsyncLocalStorage } from 'node:async_hooks'
-import { startTime } from './time.ts'
-import type { Readonly } from './types.ts'
+import { startTime } from '@01edu/time'
+import type { Readonly } from '@01edu/types'
 
 // Define the route structure with supported methods
 // export type Session = { id: number; createdAt: number; userId: number }

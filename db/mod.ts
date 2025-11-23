@@ -13,9 +13,9 @@ import {
   Database,
   type RestBindParameters,
 } from '@db/sqlite'
-import type { Expand, MatchKeys, UnionToIntersection } from './types.ts'
-import { respond } from './response.ts'
-import { APP_ENV, ENV } from './env.ts'
+import type { Expand, MatchKeys, UnionToIntersection } from '@01edu/types'
+import { respond } from '@01edu/api/response'
+import { APP_ENV, ENV } from '@01edu/api/env'
 
 const dbPath = ENV('DATABASE_PATH', ':memory:')
 /**

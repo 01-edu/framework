@@ -1,8 +1,6 @@
 {
   "license": "MIT",
-  "workspace": [
-    "framework/*"
-  ],
+  "workspace": ["./api", "./db", "./time", "./types"],
   "fmt": {
     "useTabs": false,
     "lineWidth": 80,

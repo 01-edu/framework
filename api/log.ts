@@ -20,7 +20,7 @@ import {
   red,
   yellow,
 } from '@std/fmt/colors'
-import { now, startTime } from './time.ts'
+import { now, startTime } from '@01edu/time'
 import { getContext } from './context.ts'
 import { APP_ENV, CI_COMMIT_SHA, DEVTOOL_TOKEN, DEVTOOL_URL } from './env.ts'
 

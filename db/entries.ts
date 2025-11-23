@@ -15,10 +15,10 @@ import {
   sql,
   type TableAPI,
   type TableProperties,
-} from './db.ts'
-import { getContext } from './context.ts'
-import { now } from './time.ts'
-import type { Expand } from './types.ts'
+} from './mod.ts'
+import { getContext } from '@01edu/api/context'
+import { now } from '@01edu/time'
+import type { Expand } from '@01edu/types'
 
 type RelationTable<T extends string> = { name: T; properties: TableProperties }
 type RelToTableProperties<R> = R extends RelationTable<string>[] ? {

@@ -10,11 +10,11 @@
  * @module
  */
 
+import type { Awaitable, IsUnknown, Nullish } from '@01edu/types'
+import type { Asserted, Def } from './validator.ts'
 import type { RequestContext } from './context.ts'
 import type { Log } from './log.ts'
 import { respond, ResponseError } from './response.ts'
-import type { Awaitable, IsUnknown, Nullish } from './types.ts'
-import type { Asserted, Def } from './validator.ts'
 
 /**
  * The supported HTTP methods.

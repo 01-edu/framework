@@ -38,8 +38,8 @@ import { getCookies, setCookie } from '@std/http/cookie'
 import type { Log } from './log.ts'
 import { type RequestContext, runContext } from './context.ts'
 import { respond, ResponseError } from './response.ts'
-import { now } from './time.ts'
-import type { Awaitable } from './types.ts'
+import { now } from '@01edu/time'
+import type { Awaitable } from '@01edu/types'
 
 type Handler = (ctx: RequestContext) => Awaitable<Response>
 /**
