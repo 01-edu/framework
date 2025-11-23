@@ -5,7 +5,7 @@ import type { RequestContext } from '@01edu/framework/context'
 import { logger } from '@01edu/framework/log'
 import { server } from '@01edu/framework/server'
 import { NUM, STR } from '@01edu/framework/validator'
-import { makeRouter, route } from '@01edu/framework/router-server'
+import { makeRouter, route } from '@01edu/framework/router'
 
 // The session is anything you want, it's optional, defaults to undefined
 type Session = {

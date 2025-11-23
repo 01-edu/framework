@@ -13,7 +13,7 @@
  * @example
  * ```ts
  * import { server } from '@01edu/server';
- * import { makeRouter, route } from '@01edu/router-server';
+ * import { makeRouter, route } from '@01edu/router';
  * import { logger } from '@01edu/log';
  *
  * const log = await logger({});

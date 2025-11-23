@@ -73,7 +73,7 @@ export type Handler<
  *
  * @example
  * ```ts
- * import { route } from '@01edu/router-server';
+ * import { route } from '@01edu/router';
  * import { STR } from '@01edu/validator';
  *
  * const helloRoute = route({
@@ -133,7 +133,7 @@ export type GenericRoutes = Record<
  *
  * @example
  * ```ts
- * import { makeRouter, route } from '@01edu/router-server';
+ * import { makeRouter, route } from '@01edu/router';
  * import { logger } from '@01edu/log';
  * import { STR } from '@01edu/validator';
  *
