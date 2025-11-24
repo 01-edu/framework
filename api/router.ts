@@ -120,10 +120,10 @@ const sensitiveData = (
   return redactedPayload || (logPayload as Record<string, unknown>)
 }
 
-export type GenericRoutes = Record<
+// deno-lint-ignore no-explicit-any
+export type GenericRoutes<Session = any> = Record<
   RoutePattern,
-  // deno-lint-ignore no-explicit-any
-  Handler<any, Def | undefined, Def | undefined>
+  Handler<Session, Def | undefined, Def | undefined>
 >
 
 /**

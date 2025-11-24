@@ -13,11 +13,11 @@
  *
  * @example Basic usage
  * ```ts
- * import { createClient } from '@01edu/api-client'
+ * import { makeClient } from '@01edu/api-client'
  * import type { RoutesDefinitions } from '/api/routes.ts'
  * // Important, only import types from your backend
  *
- * const api = createClient<RoutesDefinitions>('/api')
+ * const api = makeClient<RoutesDefinitions>('/api')
  * const res = await api['GET/hello'].fetch({ name: 'Ada' })
  * ```
  *
@@ -135,10 +135,10 @@ Handler<any, infer TInput, infer TOutput>
  *
  * @example
  * ```ts
- * import { createClient } from '@01edu/api-client'
+ * import { makeClient } from '@01edu/api-client'
  * import type { RouteDefinitions } from '/api/routes.ts'
  *
- * const api = createClient<RouteDefinitions>('/api')
+ * const api = makeClient<RouteDefinitions>('/api')
  *
  * // One-shot call
  * const result = await api['GET/hello'].fetch({ name: 'Ada' })
@@ -149,7 +149,7 @@ Handler<any, infer TInput, infer TOutput>
  * hello.$.subscribe(v => console.log(v.pending, v.data, v.error))
  * ```
  */
-export const createClient = <T extends GenericRoutes>(baseUrl = ''): {
+export const makeClient = <T extends GenericRoutes>(baseUrl = ''): {
   [K in keyof T]: {
     fetch: (
       input?: HandlerIO<T, K>[0] | undefined,
