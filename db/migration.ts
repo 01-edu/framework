@@ -57,7 +57,7 @@ export const runMigrations = async (migrationsPath: string) => {
   }
 
   if (!currentVersion) {
-    db.sql`PRAGMA user_version = ${lastVersion}`
+    db.exec(`PRAGMA user_version = ${lastVersion}`)
     console.log('✅ Clean database, no need to migrate')
     return
   }
@@ -78,7 +78,7 @@ export const runMigrations = async (migrationsPath: string) => {
       }
 
       await run(sql)
-      db.sql`PRAGMA user_version = ${migration.version}`
+      db.exec(`PRAGMA user_version = ${migration.version}`)
       console.log(`✅ Successfully applied version ${migration.version}`)
     } catch (err) {
       console.error(`❌ Failed to apply migration ${migration.name}:`, err)
