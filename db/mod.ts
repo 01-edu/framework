@@ -29,18 +29,25 @@ const dbPath = ENV('DATABASE_PATH', ':memory:')
  * const result = db.query('SELECT * FROM users');
  * ```
  */
-export const db: Database = new Database(dbPath)
-
-// MEMORY -> possible corruption on crash during COMMIT
-db.exec('PRAGMA temp_store = memory')
-db.exec('PRAGMA synchronous = NORMAL ') // OFF -> possible db corruption on power outage
-db.exec("PRAGMA encoding = 'UTF-8'")
-if (dbPath === 'prod') {
-  db.exec('PRAGMA journal_mode = WAL') // OFF -> possible db corruption on ROLLBACK
-  // PRAGMA busy_timeout = 5000 -- Timeout set for killing long duration queries
-  // PRAGMA wal_autocheckpoint = 0 -- only activate this if high volume
+type GT = {
+  ['@01edu/db']: Database | undefined
 }
 
+const sharedDb = (globalThis as unknown as GT)['@01edu/db']
+export const db: Database = sharedDb ||
+  ((globalThis as unknown as GT)['@01edu/db'] = new Database(dbPath))
+
+if (!sharedDb) {
+  // MEMORY -> possible corruption on crash during COMMIT
+  db.exec('PRAGMA temp_store = memory')
+  db.exec('PRAGMA synchronous = NORMAL ') // OFF -> possible db corruption on power outage
+  db.exec("PRAGMA encoding = 'UTF-8'")
+  if (APP_ENV === 'prod') {
+    db.exec('PRAGMA journal_mode = WAL') // OFF -> possible db corruption on ROLLBACK
+    // PRAGMA busy_timeout = 5000 -- Timeout set for killing long duration queries
+    // PRAGMA wal_autocheckpoint = 0 -- only activate this if high volume
+  }
+}
 /**
  * A mapping of database type names to their corresponding JavaScript types.
  */

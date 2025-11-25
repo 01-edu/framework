@@ -76,12 +76,16 @@ export const runMigrations = async (migrationsPath: string) => {
       if (typeof run !== 'function') {
         throw Error(`Migration file does not export a 'run' function.`)
       }
-
+      db.exec('BEGIN IMMEDIATE')
       await run(sql)
+      db.exec('COMMIT')
       db.exec(`PRAGMA user_version = ${migration.version}`)
       console.log(`✅ Successfully applied version ${migration.version}`)
     } catch (err) {
+      console.error(err)
       console.error(`❌ Failed to apply migration ${migration.name}:`, err)
+      db.exec('ROLLBACK')
+      Deno.exit(1)
     }
   }
 
