@@ -14,12 +14,13 @@
  *
  * @example
  * ```ts
- * import { ENV } from './env.ts';
+ * import { ENV } from '@01edu/api/env';
  *
  * const port = ENV('PORT', '8080');
  * ```
  */
-export const ENV = (key: string, fallback?: string): string => {
+type EnvGetter = (key: string, fallback?: string) => string
+export const ENV: EnvGetter = (key, fallback) => {
   const value = Deno.env.get(key)
   if (value) return value
   if (fallback != null) return fallback
@@ -37,7 +38,7 @@ export type AppEnvironments = 'dev' | 'prod' | 'test'
  *
  * @example
  * ```ts
- * import { APP_ENV } from './env.ts';
+ * import { APP_ENV } from '@01edu/api/env';
  *
  * if (APP_ENV === 'prod') {
  *   console.log('Running in production mode');
@@ -54,7 +55,7 @@ if (APP_ENV !== 'dev' && APP_ENV !== 'prod' && APP_ENV !== 'test') {
  *
  * @example
  * ```ts
- * import { CI_COMMIT_SHA } from './env.ts';
+ * import { CI_COMMIT_SHA } from '@01edu/api/env';
  *
  * console.log(`Build version: ${CI_COMMIT_SHA}`);
  * ```
@@ -65,7 +66,7 @@ export const CI_COMMIT_SHA: string = ENV('CI_COMMIT_SHA', '')
  *
  * @example
  * ```ts
- * import { DEVTOOL_TOKEN } from './env.ts';
+ * import { DEVTOOL_TOKEN } from '@01edu/api/env';
  *
  * const headers = {
  *   'Authorization': `Bearer ${DEVTOOL_TOKEN}`,
@@ -78,9 +79,78 @@ export const DEVTOOL_TOKEN: string = ENV('DEVTOOL_TOKEN', '')
  *
  * @example
  * ```ts
- * import { DEVTOOL_URL } from './env.ts';
+ * import { DEVTOOL_URL } from '@01edu/api/env';
  *
  * fetch(`${DEVTOOL_URL}/api/status`);
  * ```
  */
 export const DEVTOOL_URL: string = ENV('DEVTOOL_URL', '')
+
+const forAppEnv =
+  (env: AppEnvironments) => (key: string, fallback?: string): string => {
+    const value = Deno.env.get(key)
+    if (value) return value
+    if (APP_ENV !== env && fallback != null) return fallback
+    throw Error(`${key}: field required in the env for APP_ENV=${env}`)
+  }
+
+/**
+ * PROD env getter
+ *
+ * Like `ENV`, but stricter: returns the environment variable if set.
+ * If the variable is not set, a `fallback` is only used when the current
+ * `APP_ENV` is not `'prod'`. When `APP_ENV === 'prod'` and the value is
+ * missing (and no fallback is provided) an error is thrown.
+ *
+ * Use `PROD` when a value must be present in production but may be defaulted
+ * in development or test environments.
+ *
+ * @example
+ * ```ts
+ * import { PROD } from '@01edu/api/env';
+ *
+ * // In production this will throw if REDIS_URL is not set.
+ * const redisUrl = PROD('REDIS_URL', 'redis://localhost:6379');
+ * ```
+ */
+export const PROD: EnvGetter = forAppEnv('prod')
+/**
+ * TEST env getter
+ *
+ * Like `ENV`, but stricter: returns the environment variable if set.
+ * If the variable is not set, a `fallback` is only used when the current
+ * `APP_ENV` is not `'test'`. When `APP_ENV === 'test'` and the value is
+ * missing (and no fallback is provided) an error is thrown.
+ *
+ * Use `TEST` when a value must be present in production but may be defaulted
+ * in development or test environments.
+ *
+ * @example
+ * ```ts
+ * import { TEST } from '@01edu/api/env';
+ *
+ * // In test env this will throw if REDIS_URL is not set.
+ * const redisUrl = TEST('REDIS_URL', 'redis://localhost:6379');
+ * ```
+ */
+export const TEST: EnvGetter = forAppEnv('test')
+/**
+ * DEV env getter
+ *
+ * Like `ENV`, but stricter: returns the environment variable if set.
+ * If the variable is not set, a `fallback` is only used when the current
+ * `APP_ENV` is not `'dev'`. When `APP_ENV === 'dev'` and the value is
+ * missing (and no fallback is provided) an error is thrown.
+ *
+ * Use `DEV` when a value must be present in production but may be defaulted
+ * in development or dev environments.
+ *
+ * @example
+ * ```ts
+ * import { DEV } from '@01edu/api/env';
+ *
+ * // In dev env this will throw if REDIS_URL is not set.
+ * const redisUrl = DEV('REDIS_URL', 'redis://localhost:6379');
+ * ```
+ */
+export const DEV: EnvGetter = forAppEnv('dev')
