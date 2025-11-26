@@ -80,7 +80,8 @@ const navigateUrl = (to: string, replace = false) => {
   dispatchNavigation()
 }
 
-type ParamValue = string | number | boolean | null | undefined
+type ParamPrimitive = string | number | null | undefined
+type ParamValue = ParamPrimitive | boolean | ParamPrimitive[]
 type Params = Record<string, ParamValue>
 type GetUrlProps = {
   href?: string
@@ -98,13 +99,22 @@ const getUrl = ({ href, hash, params }: GetUrlProps): URL => {
     url.search = `?${currentUrl.searchParams}`
     return url
   }
-  for (const [key, value] of Object.entries(params)) {
+  for (const [key, value] of Object.entries(params) as [string, ParamValue][]) {
+    if (Array.isArray(value)) {
+      // Remove existing then append each to preserve ordering
+      url.searchParams.delete(key)
+      for (const v of value) {
+        if (v == null) continue // skip deletions inside arrays
+        url.searchParams.append(key, String(v))
+      }
+      continue
+    }
     if (value === true) {
       url.searchParams.set(key, '')
     } else if (value === false || value == null) {
       url.searchParams.delete(key)
     } else {
-      url.searchParams.set(key, value)
+      url.searchParams.set(key, String(value))
     }
   }
   return url
