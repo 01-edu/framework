@@ -279,6 +279,8 @@ const pathSignal = computed(() => urlSignal.value.pathname)
  *
  * - path: current pathname without trailing slash
  * - hash: current hash (including leading '#')
+ * - value: current URL value, like a normal signal
+ * - peek: return the value without registering the signal
  * - params: proxy for query params; read keys as string|null, enumerable
  * - equals(url): compare with a URL object; same-origin and same query values
  *
@@ -292,6 +294,8 @@ const pathSignal = computed(() => urlSignal.value.pathname)
 export const url: {
   path: string
   hash: string
+  value: URL
+  peek: () => URL
   params: Record<string, string | null>
   equals: (url: URL) => boolean
 } = {
@@ -300,6 +304,12 @@ export const url: {
   },
   get hash() {
     return hashSignal.value
+  },
+  get value() {
+    return urlSignal.value
+  },
+  peek() {
+    return urlSignal.peek()
   },
   params,
   equals: (url: URL) => isCurrentURL(url),
