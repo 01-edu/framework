@@ -1,21 +1,24 @@
-name: 🦖 Publish
+name: 📦 Publish NPM
 on: { push: { branches: [master] } }
 
 jobs:
-  publish:
+  publish-npm:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # The OIDC ID token is used for authentication with JSR.
+      id-token: write
     steps:
-      - name: 🐧 Checkout code
+      - name: 🐧 Checkout
         uses: actions/checkout@v5
         with: { fetch-depth: 0 }
+
+      - name: 🟢 Update node
+        uses: actions/setup-node@v6
+        with: { node-version: 24, registry-url: "https://registry.npmjs.org" }
 
       - name: 🦖 Set up Deno
         uses: denoland/setup-deno@v2
         with: { deno-version: v2.x, cache: true }
 
-      - name: Publish changed packages
-        run: |
-          deno publish
+      - name: 📦 Build npm packages
+        run: deno run -A npm.ts

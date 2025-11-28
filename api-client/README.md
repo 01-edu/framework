@@ -1,8 +1,7 @@
 # api-client
 
-Tiny, type-safe HTTP API client meant to be used alongside the
-`@01edu/api` router (see
-[`@01edu/api/router`](https://jsr.io/@01edu/api/doc/router)). It
+Tiny, type-safe HTTP API client meant to be used alongside the `@01edu/api`
+router (see [`@01edu/api/router`](https://jsr.io/@01edu/api/doc/router)). It
 builds a strongly-typed client from your server route definitions.
 
 ## Install
@@ -11,8 +10,7 @@ builds a strongly-typed client from your server route definitions.
 
 ## How it fits
 
-- Define routes on the server with @01edu/api/router and export their
-  type.
+- Define routes on the server with @01edu/api/router and export their type.
 - Use that type on the client with `createClient` for end-to-end typing.
 
 ## Server (types export)

@@ -3,10 +3,10 @@
     "@preact/signals": "npm:@preact/signals@^2.5.1"
   },
   "name": "@01edu/api-client",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "MIT",
   "exports": { ".": "./mod.ts" },
   "compilerOptions": {
-    "lib": ["deno.ns", "DOM", "DOM.Iterable", "esnext"]
+    "lib": ["DOM", "DOM.Iterable", "esnext"]
   }
 }

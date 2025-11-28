@@ -1,7 +1,12 @@
 {
   "imports": {},
   "name": "@01edu/types",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
-  "exports": { ".": "./mod.ts" }
+  "exports": {
+    ".": "./mod.d.ts",
+    "./context": "./context.d.ts",
+    "./router": "./router.d.ts",
+    "./validator": "./validator.d.ts"
+  }
 }

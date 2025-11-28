@@ -31,8 +31,8 @@
  * @module
  */
 import { Signal } from '@preact/signals'
-import type { Asserted } from '@01edu/api/validator'
-import type { GenericRoutes, Handler, HttpMethod } from '@01edu/api/router'
+import type { Asserted } from '@01edu/types/validator'
+import type { GenericRoutes, Handler, HttpMethod } from '@01edu/types/router'
 
 /**
  * Error thrown when the server returns a JSON error payload.

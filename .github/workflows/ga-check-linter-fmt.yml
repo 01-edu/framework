@@ -1,10 +1,7 @@
 name: 👾 Check, Lint, and Format
-
 on:
-  pull_request:
-    types: [opened, reopened, synchronize]
-  push:
-    branches: [master]
+  push: { branches: [master] }
+  pull_request: { types: [opened, reopened, synchronize] }
 
 jobs:
   lint-and-format-check:
@@ -18,9 +15,7 @@ jobs:
 
       - name: 🦖 Set up Deno
         uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
-          cache: true
+        with: { deno-version: v2.x, cache: true }
 
       - name: 🦊 Run Types Checks
         run: deno check

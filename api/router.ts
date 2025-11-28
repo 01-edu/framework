@@ -10,59 +10,18 @@
  * @module
  */
 
-import type { Awaitable, IsUnknown, Nullish } from '@01edu/types'
-import type { Asserted, Def } from './validator.ts'
-import type { RequestContext } from './context.ts'
+import type { Awaitable } from '@01edu/types'
+import type { RequestContext } from '@01edu/types/context'
+import type { Def } from '@01edu/types/validator'
+import type {
+  GenericRoutes,
+  Handler,
+  HttpMethod,
+  Route,
+  SimpleHandler,
+} from '@01edu/types/router'
 import type { Log } from './log.ts'
 import { respond, ResponseError } from './response.ts'
-
-/**
- * The supported HTTP methods.
- */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
-/**
- * A route pattern string, combining an HTTP method and a URL path.
- *
- * @example
- * ```
- * 'GET/users'
- * 'POST/users'
- * ```
- */
-export type RoutePattern = `${HttpMethod}/${string}`
-
-type RequestHandler = (
-  ctx: RequestContext & { session: unknown },
-) => Awaitable<Response>
-type Respond<T> = Awaitable<T | Response>
-
-type Authorized<Session> = IsUnknown<Session> extends true ? RequestContext
-  : RequestContext & { session: Session }
-
-/**
- * Descriptor for a handler that may authorize a session and convert input to output.
- *
- * In and Out are optional definitions (Def) or undefined. If `authorize` is provided,
- * its result will be passed as `Authorized<Session>` to `fn`.
- *
- * @template Session - session type produced by `authorize` and used in `fn`
- * @template In - input definition (Def) or undefined
- * @template Out - output definition (Def) or undefined
- */
-export type Handler<
-  Session,
-  In extends Def | undefined,
-  Out extends Def | undefined,
-> = {
-  input?: In
-  output?: Out
-  description?: string
-  authorize?: (ctx: RequestContext, input: Asserted<In>) => Awaitable<Session>
-  fn: (
-    ctx: Authorized<Session>,
-    input: Asserted<In>,
-  ) => Respond<Asserted<Out>>
-}
 
 /**
  * A declaration function for creating a route handler.
@@ -99,12 +58,6 @@ const getPayloadBody = async (ctx: RequestContext) => {
   }
 }
 
-type Route = Record<HttpMethod, RequestHandler>
-type SimpleHandler = (
-  ctx: RequestContext,
-  payload: unknown,
-) => Respond<Nullish>
-
 const sensitiveData = (
   logPayload: unknown,
   sensitiveKeys: string[],
@@ -119,12 +72,6 @@ const sensitiveData = (
   }
   return redactedPayload || (logPayload as Record<string, unknown>)
 }
-
-// deno-lint-ignore no-explicit-any
-export type GenericRoutes<Session = any> = Record<
-  RoutePattern,
-  Handler<Session, Def | undefined, Def | undefined>
->
 
 /**
  * Creates a router function from a set of route definitions.

@@ -4,11 +4,12 @@
     "preact": "npm:preact@^10.27.2"
   },
   "name": "@01edu/signal-router",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "license": "MIT",
   "exports": { ".": "./mod.tsx" },
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "preact"
+    "jsxImportSource": "preact",
+    "lib": ["DOM", "DOM.Iterable", "esnext"]
   }
 }

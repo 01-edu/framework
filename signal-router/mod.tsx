@@ -1,4 +1,4 @@
-// Deno publish please don't do anything
+/** @jsxImportSource preact */
 
 /**
  * SPA routing helpers that treat the URL as storage, built on @preact/signals.
