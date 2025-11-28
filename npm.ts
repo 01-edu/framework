@@ -74,6 +74,19 @@ for await (const dir of Deno.readDir(root)) {
     pkg.peerDependencies[key] = pkg.dependencies[key]
     pkg.dependencies[key] = undefined
   }
+
+  // TODO: fix that, understand why bundle doesn't set the proper path
+  pkg.module = pkg.module.replace(`/${dir.name}/`, '/')
+  for (
+    const [k, v] of Object.entries(pkg.exports) as [
+      string,
+      Record<string, string>,
+    ][]
+  ) {
+    for (const kk of Object.keys(v)) {
+      pkg.exports[k][kk] = v[kk].replace(`/${dir.name}/`, '/')
+    }
+  }
   Deno.writeTextFileSync(pkgFile, JSON.stringify(pkg, null, 2))
   Deno.copyFileSync(`${root}/LICENSE`, `${outDir}/LICENSE`)
   Deno.copyFileSync(`${base}/README.md`, `${outDir}/README.md`)

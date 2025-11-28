@@ -4,7 +4,7 @@
     "preact": "npm:preact@^10.27.2"
   },
   "name": "@01edu/signal-router",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "license": "MIT",
   "exports": { ".": "./mod.tsx" },
   "compilerOptions": {
