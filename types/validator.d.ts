@@ -1,4 +1,4 @@
-type ValidatorFailure<T extends Def> = {
+export type ValidatorFailure<T extends Def> = {
   type: T['type']
   path: (string | number)[]
   value: unknown
@@ -85,11 +85,11 @@ export type DefBase =
   // deno-lint-ignore no-explicit-any
   | DefObject<Record<string, any>>
 
-type OptionalAssert<T extends Def['assert']> = (
+export type OptionalAssert<T extends Def['assert']> = (
   value: unknown,
 ) => ReturnType<T> | undefined | null
 
-type Optional<T extends Def> = T & {
+export type Optional<T extends Def> = T & {
   assert: OptionalAssert<T['assert']>
 }
 
