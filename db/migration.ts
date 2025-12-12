@@ -69,8 +69,7 @@ export const runMigrations = async (migrationsPath: string) => {
       console.log(
         `▶️ Applying version: ${migration.version}: ${migration.name}`,
       )
-      const moduleUrl =
-        new URL(`${migrationsPath}/${migration.name}`, import.meta.url).href
+      const moduleUrl = `file://${migrationsPath}/${migration.name}`
       const { run } = await import(moduleUrl)
 
       if (typeof run !== 'function') {
