@@ -92,7 +92,7 @@ type EntryInsertParams<R extends TableProperties, T extends EntryTypeDef<R>> =
     { [K in Extract<keyof T, string>]: DBTypes[R[K]['type']] },
     'trigger' | 'fields' | 'data'
   >
-  & { data?: Record<string, unknown> | null }
+  & { data?: Record<string, unknown> | null | undefined }
 
 type FieldParamsForEntry<T> = T extends { fields: Record<string, EntryField> }
   ? { [K in keyof T['fields']]: DBTypes[T['fields'][K]['type']] }
