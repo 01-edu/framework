@@ -221,7 +221,7 @@ export type TableAPI<N extends string, P extends TableProperties> = {
    * }
    * ```
    */
-  assert: (id: number) => void
+  assert: (id: number | undefined) => void
   /**
    * Executes a custom SQL query.
    * @param sqlArr - The SQL query as a template literal.
@@ -354,8 +354,8 @@ export const createTable = <N extends string, P extends TableProperties>(
 
   const notFound = { message: `${name} not found` }
   const exists = (id: number) => existsStmt.value(id)?.[0] === 1
-  const assert = (id: number) => {
-    if (exists(id)) return
+  const assert = (id: number | undefined) => {
+    if (id && exists(id)) return
     throw new respond.NotFoundError(notFound)
   }
 
