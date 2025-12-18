@@ -107,9 +107,12 @@ type RequestState<T> =
     at: number
   }
 
+type ReplacerType = (key: string, value: unknown) => unknown
+
 type Options = {
   headers?: HeadersInit
   signal?: AbortSignal
+  replacer?: ReplacerType
 }
 
 const withoutBody = new Set([
@@ -155,7 +158,7 @@ export const makeClient = <T extends GenericRoutes>(baseUrl = ''): {
       input?: HandlerIO<T, K>[0] | undefined,
       options?: Options | undefined,
     ) => Promise<HandlerIO<T, K>[1]>
-    signal: () => RequestState<HandlerIO<T, K>[1]> & {
+    signal: (options?: { replacer?: ReplacerType }) => RequestState<HandlerIO<T, K>[1]> & {
       $: Signal<RequestState<HandlerIO<T, K>[1]>>
       reset: () => void
       fetch: (
@@ -177,6 +180,7 @@ export const makeClient = <T extends GenericRoutes>(baseUrl = ''): {
     const defaultHeaders = { 'Content-Type': 'application/json' }
 
     async function fetcher(input?: Input, options?: Options | undefined) {
+      const { replacer, ...fetchOptions } = options || {}
       let url = `${baseUrl}${path}`
       let headers = options?.headers
       if (!headers) {
@@ -197,13 +201,16 @@ export const makeClient = <T extends GenericRoutes>(baseUrl = ''): {
 
       const response = await fetch(
         url,
-        { ...options, method, headers, body: bodyInput },
+        { ...fetchOptions, method, headers, body: bodyInput },
       )
       if (withoutBody.has(response.status)) return null as unknown as Output
       const body = await response.text()
       let payload
+      const contentType = response.headers.get('content-type')
       try {
-        payload = JSON.parse(body)
+        payload = contentType?.includes('application/json')
+          ? JSON.parse(body, replacer)
+          : body
         if (response.ok) return payload as Output
       } catch {
         throw new ErrorWithBody(body, { response })
@@ -212,7 +219,7 @@ export const makeClient = <T extends GenericRoutes>(baseUrl = ''): {
       throw new ErrorWithData(message, data)
     }
 
-    const signal = () => {
+    const signal = (options: { replacer?: ReplacerType } = {}) => {
       const $ = new Signal<RequestState<Output>>({ pending: 0 })
       return {
         $,
@@ -226,9 +233,10 @@ export const makeClient = <T extends GenericRoutes>(baseUrl = ''): {
             const controller = new AbortController()
             prev.controller?.abort()
             $.value = { pending: Date.now(), controller, data: prev.data }
+            const { replacer } = options
             const { signal } = controller
             $.value = {
-              data: await fetcher(input, { signal, headers }),
+              data: await fetcher(input, {replacer, signal, headers }),
               at: Date.now(),
             }
           } catch (err) {
