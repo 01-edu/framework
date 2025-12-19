@@ -88,6 +88,7 @@ type RequestState<T> =
   | {
     data: T
     pending?: undefined
+    promise?: undefined
     controller?: undefined
     error?: undefined
     at: number
@@ -95,6 +96,7 @@ type RequestState<T> =
   | {
     data?: T | undefined
     pending: number
+    promise?: Promise<T>
     controller?: AbortController
     error?: undefined
     at?: number
@@ -102,6 +104,7 @@ type RequestState<T> =
   | {
     data?: T | undefined
     pending?: undefined
+    promise?: undefined
     controller?: undefined
     error: ErrorWithBody | ErrorWithData | Error
     at: number
@@ -234,11 +237,21 @@ export const makeClient = <T extends GenericRoutes>(baseUrl = ''): {
           try {
             const controller = new AbortController()
             prev.controller?.abort()
-            $.value = { pending: Date.now(), controller, data: prev.data }
             const { replacer } = options
             const { signal } = controller
+            const promise = fetcher(input, {
+              replacer,
+              signal,
+              headers,
+            })
             $.value = {
-              data: await fetcher(input, { replacer, signal, headers }),
+              pending: Date.now(),
+              promise,
+              controller,
+              data: prev.data,
+            }
+            $.value = {
+              data: await promise,
               at: Date.now(),
             }
           } catch (err) {
