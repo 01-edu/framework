@@ -158,7 +158,9 @@ export const makeClient = <T extends GenericRoutes>(baseUrl = ''): {
       input?: HandlerIO<T, K>[0] | undefined,
       options?: Options | undefined,
     ) => Promise<HandlerIO<T, K>[1]>
-    signal: (options?: { replacer?: ReplacerType }) => RequestState<HandlerIO<T, K>[1]> & {
+    signal: (
+      options?: { replacer?: ReplacerType },
+    ) => RequestState<HandlerIO<T, K>[1]> & {
       $: Signal<RequestState<HandlerIO<T, K>[1]>>
       reset: () => void
       fetch: (
@@ -236,7 +238,7 @@ export const makeClient = <T extends GenericRoutes>(baseUrl = ''): {
             const { replacer } = options
             const { signal } = controller
             $.value = {
-              data: await fetcher(input, {replacer, signal, headers }),
+              data: await fetcher(input, { replacer, signal, headers }),
               at: Date.now(),
             }
           } catch (err) {
