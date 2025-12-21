@@ -86,6 +86,20 @@ export const DEVTOOL_TOKEN: string = ENV('DEVTOOL_TOKEN', '')
  */
 export const DEVTOOL_URL: string = ENV('DEVTOOL_URL', '')
 
+/**
+ * Internal token for dev access in production.
+ *
+ * @example
+ * ```ts
+ * import { DEV_INTERNAL_TOKEN } from '@01edu/api/env';
+ *
+ * if (req.headers.get('Authorization') === `Bearer ${DEV_INTERNAL_TOKEN}`) {
+ *   // Allow access
+ * }
+ * ```
+ */
+export const DEV_INTERNAL_TOKEN: string = ENV('DEV_INTERNAL_TOKEN', '')
+
 const forAppEnv =
   (env: AppEnvironments) => (key: string, fallback?: string): string => {
     const value = Deno.env.get(key)
