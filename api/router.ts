@@ -22,6 +22,17 @@ import type {
 } from '@01edu/types/router'
 import type { Log } from './log.ts'
 import { respond, ResponseError } from './response.ts'
+import type { Sql } from '@01edu/db'
+import { createSqlDevRoute } from './dev.ts'
+
+/**
+ * Options for configuring the router.
+ */
+export type RouterOptions = {
+  log: Log
+  sql?: Sql
+  sensitiveKeys?: string[]
+}
 
 /**
  * A declaration function for creating a route handler.
@@ -96,30 +107,32 @@ const sensitiveData = (
  *   }),
  * };
  *
- * const router = makeRouter(log, routes);
+ * const router = makeRouter(routes, { log });
  * ```
  */
 export const makeRouter = <T extends GenericRoutes>(
-  log: Log,
   defs: T,
-  sensitiveKeys = [
-    'password',
-    'confPassword',
-    'currentPassword',
-    'newPassword',
-  ],
+  {
+    log,
+    sql,
+    sensitiveKeys = [
+      'password',
+      'confPassword',
+      'currentPassword',
+      'newPassword',
+    ],
+  }: RouterOptions,
 ): (ctx: RequestContext) => Awaitable<Response> => {
   const routeMaps: Record<string, Route> = Object.create(null)
-
-  for (const key in defs) {
-    const slashIndex = key.indexOf('/')
-    const method = key.slice(0, slashIndex) as HttpMethod
-    const url = key.slice(slashIndex)
+  const registerRoute = (def: T[keyof T], peth: string) => {
+    const slashIndex = peth.indexOf('/')
+    const method = peth.slice(0, slashIndex) as HttpMethod
+    const url = peth.slice(slashIndex)
     if (!routeMaps[url]) {
       routeMaps[url] = Object.create(null) as Route
       routeMaps[`${url}/`] = routeMaps[url]
     }
-    const { fn, input, authorize } = defs[key] as Handler<unknown, Def, Def>
+    const { fn, input, authorize } = def as Handler<unknown, Def, Def>
     const handler = async (
       ctx: RequestContext & { session: unknown },
       payload?: unknown,
@@ -165,6 +178,19 @@ export const makeRouter = <T extends GenericRoutes>(
     } else {
       routeMaps[url][method] = handler
     }
+  }
+
+  for (const key in defs) {
+    registerRoute(defs[key], key)
+  }
+
+  if (
+    !routeMaps['/api/execute-sql'] || !routeMaps['/api/execute-sql']['POST']
+  ) {
+    registerRoute(
+      createSqlDevRoute(sql) as T[keyof T],
+      'POST/api/execute-sql',
+    )
   }
 
   return (ctx: RequestContext) => {

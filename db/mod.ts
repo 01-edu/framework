@@ -437,6 +437,12 @@ export const sql = <
 }
 
 /**
+ * Type definition for the `sql` template tag function.
+ * It allows executing SQL queries with parameter binding and retrieving results in various formats.
+ */
+export type Sql = typeof sql
+
+/**
  * Creates a restore point for the database, for use in testing environments.
  * This function will throw an error if called in a production environment.
  *
