@@ -1,4 +1,4 @@
-import { APP_ENV, DEV_INTERNAL_TOKEN } from '@01edu/api/env'
+import { APP_ENV, DEVTOOL_ACCESS_TOKEN } from '@01edu/api/env'
 import { respond } from '@01edu/api/response'
 import type { RequestContext } from '@01edu/types/context'
 import { route } from '@01edu/api/router'
@@ -7,30 +7,20 @@ import type { Sql } from '@01edu/db'
 
 /**
  * Authorizes access to developer routes.
- * Checks for `DEV_INTERNAL_TOKEN` in the Authorization header.
+ * Checks for `DEVTOOL_ACCESS_TOKEN` in the Authorization header.
  * In non-prod environments, access is allowed if no token is configured.
  *
  * @param ctx - The request context.
  * @throws {respond.UnauthorizedError} If access is denied.
  */
 export const authorizeDevAccess = ({ req }: RequestContext) => {
-  // Allow only in non-prod or with explicit token in prod (defense-in-depth)
-  const auth = req.headers.get('authorization') || ''
+  if (APP_ENV !== 'prod') return // always open for dev env
+  const auth = req.headers.get('Authorization') || ''
   const bearer = auth.toLowerCase().startsWith('bearer ')
     ? auth.slice(7).trim()
     : ''
-
-  if (!DEV_INTERNAL_TOKEN) {
-    if (APP_ENV === 'prod') {
-      throw new respond.UnauthorizedError({ message: 'Unauthorized access' })
-    }
-    // In dev/test with no configured token, allow free access.
-    return
-  }
-
-  if (bearer !== DEV_INTERNAL_TOKEN) {
-    throw new respond.UnauthorizedError({ message: 'Unauthorized access' })
-  }
+  if (bearer && bearer === DEVTOOL_ACCESS_TOKEN) return
+  throw new respond.UnauthorizedError({ message: 'Unauthorized access' })
 }
 
 /**

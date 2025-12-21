@@ -66,14 +66,14 @@ export const CI_COMMIT_SHA: string = ENV('CI_COMMIT_SHA', '')
  *
  * @example
  * ```ts
- * import { DEVTOOL_TOKEN } from '@01edu/api/env';
+ * import { DEVTOOL_REPORT_TOKEN } from '@01edu/api/env';
  *
  * const headers = {
- *   'Authorization': `Bearer ${DEVTOOL_TOKEN}`,
+ *   'Authorization': `Bearer ${DEVTOOL_REPORT_TOKEN}`,
  * };
  * ```
  */
-export const DEVTOOL_TOKEN: string = ENV('DEVTOOL_TOKEN', '')
+export const DEVTOOL_REPORT_TOKEN: string = ENV('DEVTOOL_REPORT_TOKEN', '')
 /**
  * The URL for a developer tool service.
  *
@@ -91,14 +91,14 @@ export const DEVTOOL_URL: string = ENV('DEVTOOL_URL', '')
  *
  * @example
  * ```ts
- * import { DEV_INTERNAL_TOKEN } from '@01edu/api/env';
+ * import { DEVTOOL_ACCESS_TOKEN } from '@01edu/api/env';
  *
- * if (req.headers.get('Authorization') === `Bearer ${DEV_INTERNAL_TOKEN}`) {
+ * if (req.headers.get('Authorization') === `Bearer ${DEVTOOL_ACCESS_TOKEN}`) {
  *   // Allow access
  * }
  * ```
  */
-export const DEV_INTERNAL_TOKEN: string = ENV('DEV_INTERNAL_TOKEN', '')
+export const DEVTOOL_ACCESS_TOKEN: string = ENV('DEVTOOL_ACCESS_TOKEN', '')
 
 const forAppEnv =
   (env: AppEnvironments) => (key: string, fallback?: string): string => {
