@@ -152,17 +152,26 @@ export const initEntries = <
     | RelationTable<string>[]
     | Record<string, RelationTable<string>>,
   const ET extends { [K: string]: EntryTypeDef<RelToTableProperties<R>> },
->(entryIds: ID, relations: R, entryTypes: ET): {
-  type: ID
-  insertListeners: Set<EntryListenerGeneric<RelToTableProperties<R>>>
-  view: { [K in (keyof ET & string)]: `entry_${Lowercase<K>}` }
-  archive: (id: number) => void
-  insert: {
-    [K in (keyof ET & string)]: (
-      params: InsertParams<RelToTableProperties<R>, ET[K]>,
-    ) => number
-  }
-} => {
+>(entryIds: ID, relations: R, entryTypes: ET):
+  & Omit<
+    TableAPI<
+      'entryInternal',
+      & RelToTableProperties<R>
+      & typeof commonEntryProperties
+    >,
+    'insert'
+  >
+  & {
+    type: ID
+    insertListeners: Set<EntryListenerGeneric<RelToTableProperties<R>>>
+    view: { [K in (keyof ET & string)]: `entry_${Lowercase<K>}` }
+    archive: (id: number) => void
+    insert: {
+      [K in (keyof ET & string)]: (
+        params: InsertParams<RelToTableProperties<R>, ET[K]>,
+      ) => number
+    }
+  } => {
   type Relations = RelToTableProperties<R>
   type EntryTrigger = EntryTriggerGeneric<Relations>
   type EntryListener = EntryListenerGeneric<Relations>
@@ -222,7 +231,7 @@ export const initEntries = <
 
   const fieldTables: Record<string, unknown> = {}
   const entryNames = Object.keys(entryTypes) as EntryName[]
-  const insert = Object.fromEntries(
+  const insertEntry = Object.fromEntries(
     entryNames.map((k) => {
       const type = entryIds[k]
       const trigger = (entryTypes[k] as { trigger?: EntryTrigger }).trigger
@@ -368,7 +377,7 @@ export const initEntries = <
     ...EntryInternal,
     type: entryIds,
     view,
-    insert,
+    insert: insertEntry,
     archive,
     insertListeners,
   }

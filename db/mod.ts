@@ -205,7 +205,7 @@ export type TableAPI<N extends string, P extends TableProperties> = {
    * }
    * ```
    */
-  require: (id: number) => Row<P, keyof FlattenProperties<P>>
+  require: (id: number | undefined) => Row<P, keyof FlattenProperties<P>>
   /**
    * Asserts that a row with the given ID exists, throwing an error if not.
    * @param id - The ID to check.
@@ -366,8 +366,8 @@ export const createTable = <N extends string, P extends TableProperties>(
   const get = (id: number): Row<P, keyof FlatProps> | undefined =>
     getByIdStmt.get(id)
 
-  const require = (id: number) => {
-    const match = getByIdStmt.get(id)
+  const require = (id: number | undefined) => {
+    const match = id && getByIdStmt.get(id)
     if (!match) throw new respond.NotFoundError(notFound)
     return match as Row<P, keyof FlatProps>
   }
