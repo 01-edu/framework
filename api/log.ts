@@ -22,10 +22,31 @@ import {
 } from '@std/fmt/colors'
 import { now, startTime } from '@01edu/time'
 import { getContext } from './context.ts'
-import { APP_ENV, CI_COMMIT_SHA, DEVTOOL_TOKEN, DEVTOOL_URL } from './env.ts'
+import {
+  APP_ENV,
+  CI_COMMIT_SHA,
+  DEVTOOL_REPORT_TOKEN,
+  DEVTOOL_URL,
+} from './env.ts'
 
 // Types
 type LogLevel = 'info' | 'error' | 'warn' | 'debug'
+type LoggerOptions = 
+ {
+  /** The URL of the devtool service to send logs to (prod only). Defaults to `DEVTOOL_URL` env var. */
+  logUrl?: string
+  /** The authentication token for the devtool service (prod only). Defaults to `DEVTOOL_REPORT_TOKEN` env var. */
+  logToken?: string
+  /** The version of the application, typically a git commit SHA. Defaults to `CI_COMMIT_SHA` env var or `git rev-parse HEAD`. */
+  version?: string
+  /** The interval in milliseconds to batch and send logs (prod only). */
+  batchInterval?: number
+  /** The maximum number of logs to batch before sending (prod only). */
+  maxBatchSize?: number
+  /** A set of event names to filter out and not log. */
+  filters?: Set<string>
+}
+
 type LogFunction = (
   level: LogLevel,
   event: string,
@@ -129,22 +150,9 @@ export const logger = async ({
   batchInterval = 5000,
   maxBatchSize = 50,
   logUrl = DEVTOOL_URL,
-  logToken = DEVTOOL_TOKEN,
+  logToken = DEVTOOL_REPORT_TOKEN,
   version = CI_COMMIT_SHA,
-}: {
-  /** The URL of the devtool service to send logs to (prod only). Defaults to `DEVTOOL_URL` env var. */
-  logUrl?: string
-  /** The authentication token for the devtool service (prod only). Defaults to `DEVTOOL_TOKEN` env var. */
-  logToken?: string
-  /** The version of the application, typically a git commit SHA. Defaults to `CI_COMMIT_SHA` env var or `git rev-parse HEAD`. */
-  version?: string
-  /** The interval in milliseconds to batch and send logs (prod only). */
-  batchInterval?: number
-  /** The maximum number of logs to batch before sending (prod only). */
-  maxBatchSize?: number
-  /** A set of event names to filter out and not log. */
-  filters?: Set<string>
-}): Promise<Log> => {
+}: LoggerOptions): Promise<Log> => {
   let logBatch: unknown[] = []
   if (APP_ENV === 'prod' && (!logToken || !logUrl)) {
     throw Error('DEVTOOLS configuration is required in production')

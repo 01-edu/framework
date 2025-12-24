@@ -404,6 +404,20 @@ export const createTable = <N extends string, P extends TableProperties>(
 }
 
 /**
+ * Type definition for the `sql` template tag function.
+ * It allows executing SQL queries with parameter binding and retrieving results in various formats.
+ */
+export type Sql = <
+  T extends { [k in string]: unknown } | undefined,
+  P extends BindValue | BindParameters | undefined,
+>(sqlArr: TemplateStringsArray, ...vars: unknown[]) => {
+  get: (params?: P) => T | undefined
+  all: (params?: P) => T[]
+  run: (params?: P) => void
+  value: (params?: P) => T[keyof T][] | undefined
+}
+
+/**
  * A template literal tag for executing arbitrary SQL queries.
  *
  * @param sqlArr - The SQL query as a template literal.
@@ -417,15 +431,10 @@ export const createTable = <N extends string, P extends TableProperties>(
  * const result = sql`SELECT * FROM users WHERE id = ${1}`.get();
  * ```
  */
-export const sql = <
+export const sql: Sql = <
   T extends { [k in string]: unknown } | undefined,
   P extends BindValue | BindParameters | undefined,
->(sqlArr: TemplateStringsArray, ...vars: unknown[]): {
-  get: (params?: P) => T | undefined
-  all: (params?: P) => T[]
-  run: (params?: P) => void
-  value: (params?: P) => T[keyof T][] | undefined
-} => {
+>(sqlArr: TemplateStringsArray, ...vars: unknown[]) => {
   const query = String.raw(sqlArr, ...vars)
   const stmt = db.prepare(query)
   return {
