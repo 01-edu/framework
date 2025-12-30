@@ -23,8 +23,9 @@ import type {
 import type { Log } from './log.ts'
 import { respond, ResponseError } from './response.ts'
 import type { Sql } from '@01edu/db'
-import { createSqlDevRoute } from './dev.ts'
+import { createDevToolsHandshakeRoute, createSqlDevRoute } from './dev.ts'
 import { createDocRoute } from './doc.ts'
+import { APP_ENV } from '@01edu/api/env'
 
 /**
  * Options for configuring the router.
@@ -128,6 +129,10 @@ export const makeRouter = <T extends GenericRoutes>(
 
   if (!defs['POST/api/execute-sql']) {
     defs['POST/api/execute-sql'] = createSqlDevRoute(sql)
+  }
+
+  if (!defs['POST/api/connect-devtools'] && APP_ENV !== 'prod') {
+    defs['POST/api/connect-devtools'] = createDevToolsHandshakeRoute()
   }
 
   if (!defs['GET/api/doc']) {

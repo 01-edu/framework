@@ -58,3 +58,26 @@ export const createSqlDevRoute = (sql?: Sql) => {
     description: 'Execute an SQL query',
   })
 }
+
+/**
+ * Creates a route handler for receiving the DevTools logging token.
+ * This allows the local app to send logs to the connected DevTools instance.
+ */
+export const createDevToolsHandshakeRoute = () => {
+    return route({
+        fn: (_, { token }) => {
+            // @ts-ignore: Call hidden method
+            const setToken = globalThis.__DEVTOOLS_SET_TOKEN__
+            if (typeof setToken === 'function') {
+                setToken(token)
+                return { success: true }
+            }
+            return respond.NotImplemented({ message: 'Logger not configured for dynamic updates' })
+        },
+        input: OBJ({
+            token: STR('The logging token from DevTools'),
+        }),
+        output: OBJ({}, 'Success response'),
+        description: 'Receive DevTools logging token',
+    })
+}

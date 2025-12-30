@@ -115,6 +115,10 @@ const redactLongString = (_: string, value: unknown) => {
   return value.length > 100 ? 'long_string' : value
 }
 
+// Storage key for dev token, linked to the project path
+const projectKey = Deno.cwd().replace(/[^a-zA-Z0-9]/g, '_')
+const storageKey = `DEVTOOL_TOKEN_${projectKey}`
+
 const bind = (log: LogFunction) =>
   Object.assign(log, {
     error: log.bind(null, 'error'),
@@ -122,6 +126,7 @@ const bind = (log: LogFunction) =>
     warn: log.bind(null, 'warn'),
     info: log.bind(null, 'info'),
   }) as Log
+  
 
 /**
  * Initializes and returns a logger instance.
@@ -154,8 +159,31 @@ export const logger = async ({
   version = CI_COMMIT_SHA,
 }: LoggerOptions): Promise<Log> => {
   let logBatch: unknown[] = []
+  
+  // Try to load token from storage in dev if not provided
+  if (APP_ENV === 'dev' && !logToken) {
+    try {
+        logToken = localStorage.getItem(storageKey) || ''
+    } catch { /* Ignore storage errors */ }
+  }
+  
+  // Allow dynamic token update for dev mode handshake
+  const setToken = (newToken: string) => {
+    logToken = newToken
+    if (APP_ENV !== 'dev') return
+    try {
+        localStorage.setItem(storageKey, newToken)
+    } catch { /* Ignore storage errors */ }
+  }
+  // @ts-ignore: Attach hidden method for dev tools
+  globalThis.__DEVTOOLS_SET_TOKEN__ = setToken
+
   if (APP_ENV === 'prod' && (!logToken || !logUrl)) {
     throw Error('DEVTOOLS configuration is required in production')
+  }
+
+  if (APP_ENV === 'dev' && logUrl) { 
+    console.log(`\n🔌 Connect to DevTools: ${logUrl}/claim?url=http://localhost:${Deno.env.get('PORT') || 8000}\n`)
   }
 
   if (!version) {
@@ -180,6 +208,7 @@ export const logger = async ({
   // DEVTOOLS Batch Logic
   async function flushLogs() {
     if (logBatch.length === 0) return
+    if (!logToken) return // Don't send if no token yet
 
     const batchToSend = logBatch
     logBatch = []
@@ -195,9 +224,15 @@ export const logger = async ({
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${await response.text()}`)
+        // If 401/403, maybe token is bad? But we just retry or ignore in background.
+        // throw new Error(`HTTP ${response.status}: ${await response.text()}`)
+        // Silent fail or minimal log in dev to avoid spam?
+        if (APP_ENV === 'prod') console.error(`Batch send failed: ${response.status}`)
       }
     } catch (err) {
+      if (APP_ENV !== 'prod') return
+      // In dev, if it fails (e.g. devtool down), we might not want to re-queue indefinitely or spam console.
+      // But adhering to 'prod' logic:
       console.error('DEVTOOLS batch send failed:', err)
       logBatch = [...batchToSend, ...logBatch] // Requeue failed logs
     }
@@ -208,11 +243,11 @@ export const logger = async ({
     import.meta.dirname?.slice(0, -'/lib'.length).replaceAll('\\', '/') || ''
 
   const f = filters || new Set()
-  if (APP_ENV === 'prod') {
-    // Initialize batch interval
+  
+  // Initialize batch interval if we are in prod OR if we have a logUrl in dev
+  if (APP_ENV === 'prod' || (APP_ENV === 'dev' && logUrl)) {
     const interval = setInterval(flushLogs, batchInterval)
 
-    // Cleanup on exit
     const cleanup = async () => {
       clearInterval(interval)
       await flushLogs()
@@ -221,8 +256,9 @@ export const logger = async ({
 
     Deno.addSignalListener('SIGINT', cleanup)
     Deno.addSignalListener('SIGTERM', cleanup)
-    return bind((level, event, props) => {
-      if (f.has(event)) return
+  }
+
+  const logToBatch = (level: LogLevel, event: string, props?: Record<string, unknown>) => {
       const { trace, span } = getContext()
       const logData = {
         severity_number: levels[level].level,
@@ -234,11 +270,16 @@ export const logger = async ({
         service_version: version,
         service_instance_id: startTime.toString(),
       }
+      logBatch.push(logData)
+      if (logBatch.length >= maxBatchSize) flushLogs()
+  }
+
+  if (APP_ENV === 'prod') {
+    return bind((level, event, props) => {
+      if (f.has(event)) return
       // Local logging
       console.log(event, props)
-
-      logBatch.push(logData)
-      logBatch.length >= maxBatchSize && flushLogs()
+      logToBatch(level, event, props)
     })
   }
 
@@ -268,6 +309,11 @@ export const logger = async ({
 
       const ev = `${makePrettyTimestamp(level, event)} ${callChain}`.trim()
       props ? console[level](ev, props) : console[level](ev)
+      
+      // Also send to remote if configured
+      if (logUrl) {
+          logToBatch(level, event, props)
+      }
     })
   }
 
