@@ -231,7 +231,7 @@ export const initEntries = <
 
   const fieldTables: Record<string, unknown> = {}
   const entryNames = Object.keys(entryTypes) as EntryName[]
-  const insertEntry = Object.fromEntries(
+  const insert = Object.fromEntries(
     entryNames.map((k) => {
       const type = entryIds[k]
       const trigger = (entryTypes[k] as { trigger?: EntryTrigger }).trigger
@@ -377,7 +377,7 @@ export const initEntries = <
     ...EntryInternal,
     type: entryIds,
     view,
-    insert: insertEntry,
+    insert,
     archive,
     insertListeners,
   }
