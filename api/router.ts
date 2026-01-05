@@ -22,6 +22,19 @@ import type {
 } from '@01edu/types/router'
 import type { Log } from './log.ts'
 import { respond, ResponseError } from './response.ts'
+import type { Sql } from '@01edu/db'
+import { createDevToolsHandshakeRoute, createSqlDevRoute } from './dev.ts'
+import { createDocRoute } from './doc.ts'
+import { APP_ENV } from '@01edu/api/env'
+
+/**
+ * Options for configuring the router.
+ */
+export type RouterOptions = {
+  log: Log
+  sql?: Sql
+  sensitiveKeys?: string[]
+}
 
 /**
  * A declaration function for creating a route handler.
@@ -96,20 +109,35 @@ const sensitiveData = (
  *   }),
  * };
  *
- * const router = makeRouter(log, routes);
+ * const router = makeRouter(routes, { log });
  * ```
  */
 export const makeRouter = <T extends GenericRoutes>(
-  log: Log,
   defs: T,
-  sensitiveKeys = [
-    'password',
-    'confPassword',
-    'currentPassword',
-    'newPassword',
-  ],
+  {
+    log,
+    sql,
+    sensitiveKeys = [
+      'password',
+      'confPassword',
+      'currentPassword',
+      'newPassword',
+    ],
+  }: RouterOptions,
 ): (ctx: RequestContext) => Awaitable<Response> => {
   const routeMaps: Record<string, Route> = Object.create(null)
+
+  if (!defs['POST/api/execute-sql']) {
+    defs['POST/api/execute-sql'] = createSqlDevRoute(sql)
+  }
+
+  if (!defs['POST/api/connect-devtools'] && APP_ENV !== 'prod') {
+    defs['POST/api/connect-devtools'] = createDevToolsHandshakeRoute()
+  }
+
+  if (!defs['GET/api/doc']) {
+    defs['GET/api/doc'] = createDocRoute(defs)
+  }
 
   for (const key in defs) {
     const slashIndex = key.indexOf('/')

@@ -53,8 +53,38 @@ type SimpleHandler = (
   ctx: RequestContext,
   payload: unknown,
 ) => Respond<Nullish>
+
 // deno-lint-ignore no-explicit-any
-export type GenericRoutes<Session = any> = Record<
-  RoutePattern,
-  Handler<Session, Def | undefined, Def | undefined>
->
+type ReservedRoutes<Session = any> = {
+  /**
+   * ⚠️ WARNING: You are overriding a default system route (Documentation).
+   * @deprecated
+   */
+  'GET/api/doc'?: Handler<Session, Def | undefined, Def | undefined>
+
+  /**
+   * ⚠️ WARNING: You are overriding the system Health Check.
+   * @deprecated
+   */
+  'GET/api/health'?: Handler<Session, Def | undefined, Def | undefined>
+
+  /**
+   * ⚠️ WARNING: You are overriding the system Dev SQL Execution route.
+   * @deprecated
+   */
+  'POST/api/execute-sql'?: Handler<Session, Def | undefined, Def | undefined>
+
+  /**
+   * ⚠️ WARNING: You are overriding the system Dev Tools connection route.
+   * @deprecated
+   */
+  'POST/api/connect-devtools'?: Handler<Session, Def | undefined, Def | undefined>
+}
+
+// deno-lint-ignore no-explicit-any
+export type GenericRoutes<Session = any> =
+  & Record<
+    RoutePattern,
+    Handler<Session, Def | undefined, Def | undefined>
+  >
+  & ReservedRoutes<Session>
