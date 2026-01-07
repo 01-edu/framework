@@ -42,8 +42,8 @@ classes (`ResponseError`). Adds default JSON headers and bodyless handling
 ### [`api/env`](./api/env.ts)
 
 `ENV()` getter with fallback and required enforcement; typed `APP_ENV` guard
-(dev/test/prod) with validation; `CI_COMMIT_SHA`, `DEVTOOL_REPORT_TOKEN`, `DEVTOOL_ACCESS_TOKEN`,
-`DEVTOOL_URL` accessors.
+(dev/test/prod) with validation; `CI_COMMIT_SHA`, `DEVTOOL_REPORT_TOKEN`,
+`DEVTOOL_ACCESS_TOKEN`, `DEVTOOL_URL` accessors.
 
 ### [`api/validator`](./api/validator.ts)
 
