@@ -31,8 +31,7 @@ import {
 
 // Types
 type LogLevel = 'info' | 'error' | 'warn' | 'debug'
-type LoggerOptions = 
- {
+type LoggerOptions = {
   /** The URL of the devtool service to send logs to (prod only). Defaults to `DEVTOOL_URL` env var. */
   logUrl?: string
   /** The authentication token for the devtool service (prod only). Defaults to `DEVTOOL_REPORT_TOKEN` env var. */
