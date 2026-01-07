@@ -4,7 +4,6 @@
  */
 
 import { db, sql } from './mod.ts'
-import { join, toFileUrl } from '@std/path'
 
 const getVersionFromFile = (filename: string) => {
   const match = filename.match(/^([0-9]+)-/)
@@ -71,8 +70,9 @@ export const runMigrations = async (migrationsPath: string) => {
         `▶️ Applying version: ${migration.version}: ${migration.name}`,
       )
 
-      const absolutePath = join(Deno.cwd(), migrationsPath, migration.name)
-      const moduleUrl = toFileUrl(absolutePath).href
+      const moduleUrl = `file://${migrationsPath}/${migration.name}`
+      // Dynamic import is intentional - migration files are provided by consumers at runtime
+      // @ts-ignore:  JSR cannot analyze runtime-determined imports
       const { run } = await import(moduleUrl)
 
       if (typeof run !== 'function') {
