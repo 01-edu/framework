@@ -3,7 +3,7 @@ import { respond } from '@01edu/api/response'
 import type { RequestContext } from '@01edu/types/context'
 import { route } from '@01edu/api/router'
 import { ARR, OBJ, optional, STR } from '@01edu/api/validator'
-import type { Sql } from '@01edu/db'
+import type { Sql } from '@01edu/types/db'
 
 /**
  * Authorizes access to developer routes.
