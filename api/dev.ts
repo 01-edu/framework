@@ -1,8 +1,8 @@
-import { APP_ENV, DEVTOOL_ACCESS_TOKEN } from '@01edu/api/env'
-import { respond } from '@01edu/api/response'
+import { APP_ENV, DEVTOOL_ACCESS_TOKEN } from './env.ts'
+import { respond } from './response.ts'
 import type { RequestContext } from '@01edu/types/context'
-import { route } from '@01edu/api/router'
-import { ARR, OBJ, optional, STR } from '@01edu/api/validator'
+import { route } from './router.ts'
+import { ARR, OBJ, optional, STR } from './validator.ts'
 import type { Sql } from '@01edu/types/db'
 
 /**
