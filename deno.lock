@@ -1081,6 +1081,11 @@
           "npm:@preact/signals@^2.5.1",
           "npm:preact@^10.27.2"
         ]
+      },
+      "types": {
+        "dependencies": [
+          "jsr:@db/sqlite@0.13"
+        ]
       }
     }
   }

@@ -22,7 +22,7 @@ import type {
 } from '@01edu/types/router'
 import type { Log } from './log.ts'
 import { respond, ResponseError } from './response.ts'
-import type { Sql } from '@01edu/db'
+import type { Sql } from '@01edu/types/db'
 import { createSqlDevRoute } from './dev.ts'
 import { createDocRoute } from './doc.ts'
 

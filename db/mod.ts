@@ -14,6 +14,7 @@ import {
   type RestBindParameters,
 } from '@db/sqlite'
 import type { Expand, MatchKeys, UnionToIntersection } from '@01edu/types'
+import type { Sql } from '@01edu/types/db'
 import { respond } from '@01edu/api/response'
 import { APP_ENV, ENV } from '@01edu/api/env'
 
@@ -401,20 +402,6 @@ export const createTable = <N extends string, P extends TableProperties>(
     sql,
     properties,
   }
-}
-
-/**
- * Type definition for the `sql` template tag function.
- * It allows executing SQL queries with parameter binding and retrieving results in various formats.
- */
-export type Sql = <
-  T extends { [k in string]: unknown } | undefined,
-  P extends BindValue | BindParameters | undefined,
->(sqlArr: TemplateStringsArray, ...vars: unknown[]) => {
-  get: (params?: P) => T | undefined
-  all: (params?: P) => T[]
-  run: (params?: P) => void
-  value: (params?: P) => T[keyof T][] | undefined
 }
 
 /**
