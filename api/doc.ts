@@ -1,7 +1,7 @@
 import type { Def, DefBase } from '@01edu/types/validator'
 import type { GenericRoutes } from '@01edu/types/router'
-import { route } from '@01edu/api/router'
-import { ARR, BOOL, LIST, OBJ, optional, STR } from '@01edu/api/validator'
+import { route } from './router.ts'
+import { ARR, BOOL, LIST, OBJ, optional, STR } from './validator.ts'
 
 /**
  * Recursive type representing the structure of input/output documentation.
