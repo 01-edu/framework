@@ -54,6 +54,8 @@ const isCurrentURL = (alt: URL) => {
   return true
 }
 
+const baseURL = new URL(document.baseURI)
+
 // ensure we never have trailing /
 const initialUrl = new URL(location.href)
 if (location.pathname.at(-1) === '/') {
@@ -91,7 +93,7 @@ type GetUrlProps = {
 
 const getUrl = ({ href, hash, params }: GetUrlProps): URL => {
   const currentUrl = urlSignal.value
-  const url = new URL(href || currentUrl, origin)
+  const url = new URL(href || currentUrl, baseURL.href)
   hash != null && (url.hash = hash)
   url.pathname.at(-1) === '/' && (url.pathname = url.pathname.slice(0, -1))
   if (!params) {
@@ -284,6 +286,15 @@ const params = new Proxy({} as Record<string, Signal<string | null>>, {
 // url.params: { id: 454, option: 'open' }
 const hashSignal = computed(() => urlSignal.value.hash)
 const pathSignal = computed(() => urlSignal.value.pathname)
+const matchPath = (path: string) =>
+  `${baseURL.pathname}${path}` === `${pathSignal.value}`
+
+const relativePath = computed(() => {
+  const path = pathSignal.value
+  const base = baseURL.pathname.replace(/\/$/, '')
+  if (!path.startsWith(base)) return path
+  return path.slice(base.length) || '/'
+})
 /**
  * Reactive URL helpers.
  *
@@ -308,7 +319,17 @@ export const url: {
   peek: () => URL
   params: Record<string, string | null>
   equals: (url: URL) => boolean
+  base: URL
+  relativePath: string
+  matchPath: (...paths: string[]) => boolean
 } = {
+  base: baseURL,
+  get relativePath() {
+    return relativePath.value
+  },
+  matchPath(...paths: string[]) {
+    return paths.some(matchPath)
+  },
   get path() {
     return pathSignal.value
   },
