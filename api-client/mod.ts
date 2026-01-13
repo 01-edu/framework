@@ -232,7 +232,7 @@ export const makeClient = <T extends GenericRoutes>(baseUrl = ''): {
           $.peek().controller?.abort()
           $.value = { pending: 0 }
         },
-        fetch: async (input, headers: HeadersInit) => {
+        fetch: async (input, opt) => {
           const prev = $.peek()
           try {
             const controller = new AbortController()
@@ -242,7 +242,7 @@ export const makeClient = <T extends GenericRoutes>(baseUrl = ''): {
             const promise = fetcher(input, {
               replacer,
               signal,
-              headers,
+              headers: opt?.headers,
             })
             $.value = {
               pending: Date.now(),
