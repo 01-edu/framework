@@ -229,7 +229,7 @@ export const logger = async ({
         span_id: span,
         event_name: event,
         attributes: props,
-        timestamp: now(),
+        timestamp: now() * 1000,
         service_version: version,
         service_instance_id: startTime.toString(),
       }

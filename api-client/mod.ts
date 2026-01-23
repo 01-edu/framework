@@ -168,7 +168,7 @@ export const makeClient = <T extends GenericRoutes>(baseUrl = ''): {
       reset: () => void
       fetch: (
         input?: HandlerIO<T, K>[0] | undefined,
-        options?: Options | undefined,
+        headers?: HeadersInit | undefined,
       ) => Promise<void>
       at: number
     }
@@ -232,7 +232,7 @@ export const makeClient = <T extends GenericRoutes>(baseUrl = ''): {
           $.peek().controller?.abort()
           $.value = { pending: 0 }
         },
-        fetch: async (input, opt) => {
+        fetch: async (input, headers) => {
           const prev = $.peek()
           try {
             const controller = new AbortController()
@@ -242,7 +242,7 @@ export const makeClient = <T extends GenericRoutes>(baseUrl = ''): {
             const promise = fetcher(input, {
               replacer,
               signal,
-              headers: opt?.headers,
+              headers,
             })
             $.value = {
               pending: Date.now(),
@@ -279,7 +279,10 @@ export const makeClient = <T extends GenericRoutes>(baseUrl = ''): {
       } as RequestState<Output> & {
         $: Signal<RequestState<Output>>
         reset: () => void
-        fetch: (input?: Input, options?: Options | undefined) => Promise<void>
+        fetch: (
+          input?: Input,
+          headers?: HeadersInit | undefined,
+        ) => Promise<void>
         at: number
       }
     }
