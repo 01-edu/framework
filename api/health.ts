@@ -1,5 +1,5 @@
-import { NUM, OBJ, STR } from '@01edu/api/validator'
-import { route } from '@01edu/api/router'
+import { NUM, OBJ, STR } from './validator.ts'
+import { route } from './router.ts'
 import { now, startTime } from '@01edu/time'
 import { CI_COMMIT_SHA } from './env.ts'
 
