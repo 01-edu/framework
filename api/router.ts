@@ -25,6 +25,7 @@ import { respond, ResponseError } from './response.ts'
 import type { Sql } from '@01edu/types/db'
 import { createSqlDevRoute } from './dev.ts'
 import { createDocRoute } from './doc.ts'
+import { createHealthRoute } from './health.ts'
 
 /**
  * Options for configuring the router.
@@ -132,6 +133,10 @@ export const makeRouter = <T extends GenericRoutes>(
 
   if (!defs['GET/api/doc']) {
     defs['GET/api/doc'] = createDocRoute(defs)
+  }
+
+  if (!defs['GET/api/health']) {
+    defs['GET/api/health'] = createHealthRoute()
   }
 
   for (const key in defs) {
