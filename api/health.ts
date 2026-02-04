@@ -1,7 +1,7 @@
 import { NUM, OBJ, STR } from '@01edu/api/validator'
 import { route } from '@01edu/api/router'
 import { now, startTime } from '@01edu/time'
-import { CI_COMMIT_SHA } from '@01edu/api/env'
+import { CI_COMMIT_SHA } from './env.ts'
 
 /**
  * Creates a health check route that returns the application's status, uptime, version, and instance ID.
