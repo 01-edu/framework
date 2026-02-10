@@ -40,7 +40,7 @@ import { type RequestContext, runContext } from './context.ts'
 import { respond, ResponseError } from './response.ts'
 import { now } from '@01edu/time'
 import type { Awaitable } from '@01edu/types'
-import { BASE_URL } from '@01edu/api/env'
+import { BASE_URL } from './env.ts'
 
 type Handler = (ctx: RequestContext) => Awaitable<Response>
 /**
