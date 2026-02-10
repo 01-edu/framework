@@ -128,6 +128,12 @@ const forAppEnv =
  * ```
  */
 export const PROD: EnvGetter = forAppEnv('prod')
+
+export const BASE_URL = PROD('BASE_URL', '/')
+if (!BASE_URL.startsWith('/') || !BASE_URL.endsWith('/')) {
+  throw Error('incorrect BASE_URL: must start and end with /')
+}
+
 /**
  * TEST env getter
  *
