@@ -40,6 +40,7 @@ import { type RequestContext, runContext } from './context.ts'
 import { respond, ResponseError } from './response.ts'
 import { now } from '@01edu/time'
 import type { Awaitable } from '@01edu/types'
+import { BASE_URL } from './env.ts'
 
 type Handler = (ctx: RequestContext) => Awaitable<Response>
 /**
@@ -99,7 +100,7 @@ export const server = (
       setCookie(res.headers, {
         name: 'trace',
         value: String(ctx.trace),
-        path: '/',
+        path: BASE_URL,
         secure: true,
         httpOnly: true,
         sameSite: 'Lax',

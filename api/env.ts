@@ -128,6 +128,31 @@ const forAppEnv =
  * ```
  */
 export const PROD: EnvGetter = forAppEnv('prod')
+
+/**
+ *
+ * The root for all relative URLs will be this BASE_URL, so it should start and end with a slash.
+ * If base URL is not set, it defaults to '/', which means the app is served at the root of the domain.
+ * If the current application is deployed at https://domain.com/tournament/, with <base href="/tournament/" />
+ * <a href="dashboard"> will point to https://domain.com/tournament/dashboard
+ *
+ * @example
+ * ```ts
+ * import { BASE_URL } from '@01edu/api/env';
+ *
+ * // for this example the 'index.html' file's `<base href ="/" />` tag is dynamically replaced during the build process to adapt to the deployment environment.
+ * const html = Deno.readTextFileSync(import.meta.dirname + '/dist/index.html')
+   .replace(
+     '<base href="/" />',
+     `<base href="${BASE_URL}" />`,
+   )
+ * ```
+ */
+export const BASE_URL: string = PROD('BASE_URL', '/')
+if (!BASE_URL.startsWith('/') || !BASE_URL.endsWith('/')) {
+  throw Error('incorrect BASE_URL: must start and end with /')
+}
+
 /**
  * TEST env getter
  *
