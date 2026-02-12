@@ -92,10 +92,20 @@ for await (const dir of Deno.readDir(root)) {
   Deno.copyFileSync(`${base}/README.md`, `${outDir}/README.md`)
   const publish = new Deno.Command('npm', {
     args: ['publish', '--verbose'],
+    stderr: 'piped',
     cwd: outDir,
   })
   const result = await publish.spawn().output()
   if (result.code === 0) continue
+  const stderr = new TextDecoder().decode(result.stderr)
+  const isUpToDate = stderr.includes(
+    'You cannot publish over the previously published versions',
+  )
+  if (isUpToDate) {
+    console.log('package version not changed, package skipped')
+    continue
+  }
   console.log('failed to publish package')
+  console.error(stderr)
   Deno.exit(1)
 }
