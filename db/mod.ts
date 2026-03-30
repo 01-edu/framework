@@ -7,16 +7,11 @@
  */
 
 import { assertEquals } from '@std/assert/equals'
-import {
-  type BindParameters,
-  type BindValue,
-  Database,
-  type RestBindParameters,
-} from '@db/sqlite'
+import { type BindParameters, type BindValue, Database } from '@db/sqlite'
 import type { Expand, MatchKeys, UnionToIntersection } from '@01edu/types'
-import type { Sql } from '@01edu/types/db'
+import type { Metric, Sql } from '@01edu/types/db'
 import { respond } from '@01edu/api/response'
-import { APP_ENV, ENV } from '@01edu/api/env'
+import { APP_ENV, DISABLE_QUERY_METRICS, ENV } from '@01edu/api/env'
 
 const dbPath = ENV('DATABASE_PATH', ':memory:')
 /**
@@ -97,6 +92,16 @@ type InferInsertType<T extends Record<string, { type: keyof DBTypes }>> =
 
 type SelectReturnType<T extends Record<string, ColDef>, K extends keyof T> = {
   [Column in K]: DBTypes[T[Column]['type']]
+}
+
+type SqlResult<
+  T extends { [k in string]: unknown } | undefined,
+  P extends BindValue | BindParameters | undefined,
+> = {
+  get: (params?: P) => T | undefined
+  all: (params?: P) => T[]
+  value: (params?: P) => T[keyof T][] | undefined
+  run: (params?: P) => number
 }
 
 type FlattenProperties<T extends TableProperties> = Expand<
@@ -238,10 +243,7 @@ export type TableAPI<N extends string, P extends TableProperties> = {
   sql: <
     K extends keyof FlattenProperties<P>,
     T extends BindParameters | BindValue | undefined,
-  >(sqlArr: TemplateStringsArray, ...vars: unknown[]) => {
-    get: (params?: T, ...args: RestBindParameters) => Row<P, K> | undefined
-    all: (params?: T, ...args: RestBindParameters) => Row<P, K>[]
-  }
+  >(sqlArr: TemplateStringsArray, ...vars: unknown[]) => SqlResult<Row<P, K>, T>
 }
 
 /**
@@ -316,93 +318,70 @@ export const createTable = <N extends string, P extends TableProperties>(
     'Database expected schema and current schema missmatch, maybe you need a migration ?',
   )
 
-  const insertStmt = db.prepare(`
-    INSERT INTO ${name} (${keys.join(', ')})
-    VALUES (${keys.map((k) => `:${k}`).join(', ')})
-  `)
-
-  const insert = (entries: InferInsertType<P>) => {
-    insertStmt.run(entries)
-    return db.lastInsertRowId
-  }
-
   // Add dynamic update functionality
   const primaryKey = Object.keys(properties)
     .find((k: keyof P) => properties[k].primary)
 
+  const insertStmt = db.prepare(`
+    INSERT INTO ${name} (${keys.join(', ')})
+    VALUES (${keys.map((k) => `:${k}`).join(', ')})
+  `)
   const updateStmt = db.prepare(`
     UPDATE ${name} SET
     ${keys.map((k) => `${k} = COALESCE(:${k}, ${k})`).join(', ')}
     WHERE ${primaryKey} = :${primaryKey}
   `)
-
-  const update = (
-    entries: Expand<
-      & { [K in PrimaryKeys<P>]: DBTypes[P[K]['type']] }
-      & Partial<InferInsertType<P>>
-    >,
-  ) => {
-    // Make sure the primary key field exists in the entries
-    if (!entries[primaryKey as keyof typeof entries]) {
-      throw Error(`Primary key ${primaryKey} must be provided for update`)
-    }
-    return updateStmt.run(entries)
-  }
-
   const existsStmt = db.prepare(`
     SELECT EXISTS (SELECT 1 FROM ${name} WHERE ${primaryKey} = ?)
   `)
-
-  const notFound = { message: `${name} not found` }
-  const exists = (id: number) => existsStmt.value(id)?.[0] === 1
-  const assert = (id: number | undefined) => {
-    if (id && exists(id)) return
-    throw new respond.NotFoundError(notFound)
-  }
-
   const getByIdStmt = db.prepare(
     `SELECT * FROM ${name} WHERE ${primaryKey} = ? LIMIT 1`.trim(),
   )
-
-  const get = (id: number): Row<P, keyof FlatProps> | undefined =>
-    getByIdStmt.get(id)
-
-  const require = (id: number | undefined) => {
-    const match = id && getByIdStmt.get(id)
-    if (!match) throw new respond.NotFoundError(notFound)
-    return match as Row<P, keyof FlatProps>
-  }
-
-  const sql = <
-    K extends keyof FlatProps,
-    T extends BindParameters | BindValue | undefined,
-  >(sqlArr: TemplateStringsArray, ...vars: unknown[]) => {
-    const query = String.raw(sqlArr, ...vars)
-    const stmt = db.prepare(query)
-    return {
-      get: stmt.get.bind(stmt) as (
-        params?: T,
-        ...args: RestBindParameters
-      ) => Row<P, K> | undefined,
-      all: stmt.all.bind(stmt) as (
-        params?: T,
-        ...args: RestBindParameters
-      ) => Row<P, K>[],
-    }
-  }
-
+  const notFound = { message: `${name} not found` }
+  const exists = (id: number) => existsStmt.value(id)?.[0] === 1
   return {
     name,
-    insert,
-    update,
+    insert: (entries: InferInsertType<P>) => {
+      insertStmt.run(entries)
+      return db.lastInsertRowId
+    },
+    update: (
+      entries: Expand<
+        & { [K in PrimaryKeys<P>]: DBTypes[P[K]['type']] }
+        & Partial<InferInsertType<P>>
+      >,
+    ) => {
+      // Make sure the primary key field exists in the entries
+      if (!entries[primaryKey as keyof typeof entries]) {
+        throw Error(`Primary key ${primaryKey} must be provided for update`)
+      }
+      return updateStmt.run(entries)
+    },
     exists,
-    get,
-    require,
-    assert,
-    sql,
+    get: (id: number): Row<P, keyof FlatProps> | undefined =>
+      getByIdStmt.get(id),
+    require: (id: number | undefined) => {
+      const match = id && getByIdStmt.get(id)
+      if (!match) throw new respond.NotFoundError(notFound)
+      return match as Row<P, keyof FlatProps>
+    },
+    assert: (id: number | undefined) => {
+      if (id && exists(id)) return
+      throw new respond.NotFoundError(notFound)
+    },
+    sql: (sqlArr, ...vars) =>
+      sql<Row<P, keyof FlatProps>, BindParameters | BindValue | undefined>(
+        sqlArr,
+        ...vars,
+      ),
     properties,
   }
 }
+
+/**
+ * Query metrics collected while query debugging is enabled.
+ */
+export const metrics: Metric[] = []
 
 /**
  * A template literal tag for executing arbitrary SQL queries.
@@ -421,14 +400,32 @@ export const createTable = <N extends string, P extends TableProperties>(
 export const sql: Sql = <
   T extends { [k in string]: unknown } | undefined,
   P extends BindValue | BindParameters | undefined,
->(sqlArr: TemplateStringsArray, ...vars: unknown[]) => {
-  const query = String.raw(sqlArr, ...vars)
+>(sqlArr: TemplateStringsArray, ...vars: unknown[]): SqlResult<T, P> => {
+  const query = String.raw(sqlArr, ...vars).trim()
   const stmt = db.prepare(query)
+  const boundStmt = {
+    get: (params?: P) => stmt.get(params) as T | undefined,
+    all: (params?: P) => stmt.all(params) as T[],
+    run: (params?: P) => stmt.run(params),
+    value: (params?: P) => stmt.value(params) as T[keyof T][] | undefined,
+  }
+  if (DISABLE_QUERY_METRICS || !query.startsWith('SELECT ')) return boundStmt
+  const explain = db.prepare(`EXPLAIN QUERY PLAN ${query}`).get()?.detail || ''
+  const m = { query, explain, count: 0, duration: 0 }
+  metrics.push(m)
+
+  const withMetrics = <R>(fn: (params?: P) => R) => (params?: P): R => {
+    const start = performance.now()
+    const result = fn(params)
+    m.count++
+    m.duration += performance.now() - start
+    return result
+  }
   return {
-    get: stmt.get.bind(stmt) as (params?: P) => T | undefined,
-    all: stmt.all.bind(stmt) as (params?: P) => T[],
-    run: stmt.run.bind(stmt),
-    value: stmt.value.bind(stmt),
+    get: withMetrics(boundStmt.get),
+    all: withMetrics(boundStmt.all),
+    run: withMetrics(boundStmt.run),
+    value: withMetrics(boundStmt.value),
   }
 }
 

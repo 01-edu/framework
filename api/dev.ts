@@ -2,8 +2,8 @@ import { APP_ENV, DEVTOOL_ACCESS_TOKEN } from './env.ts'
 import { respond } from './response.ts'
 import type { RequestContext } from '@01edu/types/context'
 import { route } from './router.ts'
-import { ARR, OBJ, optional, STR } from './validator.ts'
-import type { Sql } from '@01edu/types/db'
+import { ARR, NUM, OBJ, optional, STR } from './validator.ts'
+import type { Metric, Sql } from '@01edu/types/db'
 
 /**
  * Authorizes access to developer routes.
@@ -58,3 +58,24 @@ export const createSqlDevRoute = (sql?: Sql) => {
     description: 'Execute an SQL query',
   })
 }
+
+/**
+ * Creates a route handler that exposes collected query metrics.
+ *
+ * @returns A route handler configuration.
+ */
+export const createQueryMetricsDevRoute = (metrics: Metric[]) =>
+  route({
+    authorize: authorizeDevAccess,
+    fn: () => metrics,
+    output: ARR(
+      OBJ({
+        query: STR('The SQL query text'),
+        count: NUM('How many times the query has run'),
+        duration: NUM('Total time spent running the query in milliseconds'),
+        explain: STR('The SQL explain text'),
+      }),
+      'Collected query metrics',
+    ),
+    description: 'List collected SQL query metrics',
+  })

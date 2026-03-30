@@ -10,6 +10,13 @@ export type Sql = <
 >(sqlArr: TemplateStringsArray, ...vars: unknown[]) => {
   get: (params?: P) => T | undefined
   all: (params?: P) => T[]
-  run: (params?: P) => void
+  run: (params?: P) => number
   value: (params?: P) => T[keyof T][] | undefined
+}
+
+export type Metric = {
+  query: string
+  count: number
+  duration: number
+  explain: string
 }
