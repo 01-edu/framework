@@ -22,8 +22,8 @@ import type {
 } from '@01edu/types/router'
 import type { Log } from './log.ts'
 import { respond, ResponseError } from './response.ts'
-import type { Sql } from '@01edu/types/db'
-import { createSqlDevRoute } from './dev.ts'
+import type { Metric, Sql } from '@01edu/types/db'
+import { createQueryMetricsDevRoute, createSqlDevRoute } from './dev.ts'
 import { createDocRoute } from './doc.ts'
 import { createHealthRoute } from './health.ts'
 
@@ -34,6 +34,7 @@ export type RouterOptions = {
   log: Log
   sql?: Sql
   sensitiveKeys?: string[]
+  metrics?: Metric[]
 }
 
 /**
@@ -99,6 +100,7 @@ const sensitiveData = (
  * import { makeRouter, route } from '@01edu/router';
  * import { logger } from '@01edu/log';
  * import { STR } from '@01edu/validator';
+ * import { metrics } from '@01edu/db';
  *
  * const log = await logger({});
  * const routes = {
@@ -109,26 +111,22 @@ const sensitiveData = (
  *   }),
  * };
  *
- * const router = makeRouter(routes, { log });
+ * const router = makeRouter(routes, { log, metrics });
  * ```
  */
+const pass = ['password', 'confPassword', 'currentPassword', 'newPassword']
 export const makeRouter = <T extends GenericRoutes>(
   defs: T,
-  {
-    log,
-    sql,
-    sensitiveKeys = [
-      'password',
-      'confPassword',
-      'currentPassword',
-      'newPassword',
-    ],
-  }: RouterOptions,
+  { log, sql, metrics, sensitiveKeys = pass }: RouterOptions,
 ): (ctx: RequestContext) => Awaitable<Response> => {
   const routeMaps: Record<string, Route> = Object.create(null)
 
   if (!defs['POST/api/execute-sql']) {
     defs['POST/api/execute-sql'] = createSqlDevRoute(sql)
+  }
+
+  if (!defs['GET/api/metrics-sql'] && metrics) {
+    defs['GET/api/metrics-sql'] = createQueryMetricsDevRoute(metrics)
   }
 
   if (!defs['GET/api/doc']) {

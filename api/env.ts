@@ -27,6 +27,11 @@ export const ENV: EnvGetter = (key, fallback) => {
   throw Error(`${key}: field required in the env`)
 }
 
+const truthy = (value: string): boolean => {
+  const v = value.toLowerCase()
+  return v === 'true' || v === '1' || v === 'yes'
+}
+
 /**
  * The possible application environments.
  */
@@ -99,6 +104,13 @@ export const DEVTOOL_URL: string = ENV('DEVTOOL_URL', '')
  * ```
  */
 export const DEVTOOL_ACCESS_TOKEN: string = ENV('DEVTOOL_ACCESS_TOKEN', '')
+
+/**
+ * Disable query debug instrumentation when set in the environment.
+ */
+export const DISABLE_QUERY_METRICS: boolean = truthy(
+  ENV('DISABLE_QUERY_METRICS', ''),
+)
 
 const forAppEnv =
   (env: AppEnvironments) => (key: string, fallback?: string): string => {
