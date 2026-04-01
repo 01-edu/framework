@@ -1,10 +1,10 @@
 {
   "imports": {
-    "@std/fmt": "jsr:@std/fmt@^1.0.8",
-    "@std/http": "jsr:@std/http@^1.0.22"
+    "@std/fmt": "jsr:@std/fmt@^1.0.9",
+    "@std/http": "jsr:@std/http@^1.0.25"
   },
   "name": "@01edu/api",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "MIT",
   "exports": {
     "./context": "./context.ts",
