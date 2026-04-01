@@ -73,6 +73,12 @@ type ReservedRoutes<Session = any> = {
    * @deprecated
    */
   'POST/api/execute-sql'?: Handler<Session, Def | undefined, Def | undefined>
+
+  /**
+   * ⚠️ WARNING: You are overriding the system SQL metrics route.
+   * @deprecated
+   */
+  'GET/api/metrics-sql'?: Handler<Session, Def | undefined, Def | undefined>
 }
 
 // deno-lint-ignore no-explicit-any
