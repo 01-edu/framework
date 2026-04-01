@@ -3,7 +3,7 @@
     "@db/sqlite": "jsr:@db/sqlite@^0.13.0"
   },
   "name": "@01edu/types",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "license": "MIT",
   "exports": {
     ".": "./mod.d.ts",
