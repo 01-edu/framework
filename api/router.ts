@@ -121,12 +121,12 @@ export const makeRouter = <T extends GenericRoutes>(
 ): (ctx: RequestContext) => Awaitable<Response> => {
   const routeMaps: Record<string, Route> = Object.create(null)
 
-  if (!defs['POST/api/execute-sql']) {
-    defs['POST/api/execute-sql'] = createSqlDevRoute(sql)
+  if (!defs['POST/api/sql/execute']) {
+    defs['POST/api/sql/execute'] = createSqlDevRoute(sql)
   }
 
-  if (!defs['GET/api/metrics-sql'] && metrics) {
-    defs['GET/api/metrics-sql'] = createQueryMetricsDevRoute(metrics)
+  if (!defs['GET/api/sql/metrics'] && metrics) {
+    defs['GET/api/sql/metrics'] = createQueryMetricsDevRoute(metrics)
   }
 
   if (!defs['GET/api/doc']) {
