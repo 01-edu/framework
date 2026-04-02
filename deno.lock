@@ -1,8 +1,8 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@cd/sqlite@~0.13.1": "0.13.1",
     "jsr:@david/code-block-writer@^13.0.3": "13.0.3",
-    "jsr:@db/sqlite@0.13": "0.13.0",
     "jsr:@deno/dnt@~0.42.3": "0.42.3",
     "jsr:@denosaurs/plug@1": "1.1.0",
     "jsr:@std/assert@^1.0.19": "1.0.19",
@@ -32,8 +32,8 @@
     "@david/code-block-writer@13.0.3": {
       "integrity": "f98c77d320f5957899a61bfb7a9bead7c6d83ad1515daee92dbacc861e13bb7f"
     },
-    "@db/sqlite@0.13.0": {
-      "integrity": "4545c635e0b3d4ddfdc0f2240f932f24b8ad0178e9c2e3a0f9403e7b18ae2fb5",
+    "@cd/sqlite@0.13.1": {
+      "integrity": "b1399921167e28857f15ad2728759d83b28471d6571a4a9ef8cb434fa0a8a9fe",
       "dependencies": [
         "jsr:@denosaurs/plug",
         "jsr:@std/path@1.0"
@@ -447,7 +447,7 @@
       },
       "db": {
         "dependencies": [
-          "jsr:@db/sqlite@0.13",
+          "jsr:@cd/sqlite@~0.13.1",
           "jsr:@std/assert@^1.0.19"
         ]
       },
@@ -459,7 +459,7 @@
       },
       "types": {
         "dependencies": [
-          "jsr:@db/sqlite@0.13"
+          "jsr:@cd/sqlite@~0.13.1"
         ]
       }
     }

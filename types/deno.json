@@ -1,9 +1,9 @@
 {
   "imports": {
-    "@db/sqlite": "jsr:@db/sqlite@^0.13.0"
+    "@db/sqlite": "jsr:@cd/sqlite@^0.13.1"
   },
   "name": "@01edu/types",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "license": "MIT",
   "exports": {
     ".": "./mod.d.ts",

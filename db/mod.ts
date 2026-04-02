@@ -7,10 +7,9 @@
  */
 
 import { assertEquals } from '@std/assert/equals'
-import { Database } from '@db/sqlite'
-import type { BindParameters, BindValue, Statement } from '@db/sqlite'
+import { Database, type BindParameters, type BindValue } from '@db/sqlite'
 import type { Expand, MatchKeys, UnionToIntersection } from '@01edu/types'
-import type { ExplainRow, Metric, Sql, StatementStatus } from '@01edu/types/db'
+import type { ExplainRow, Metric, Sql } from '@01edu/types/db'
 import { respond } from '@01edu/api/response'
 import { APP_ENV, DISABLE_QUERY_METRICS, ENV } from '@01edu/api/env'
 
@@ -419,7 +418,17 @@ export const sql: Sql = <
     duration: 0,
     max: 0,
     get status() {
-      return readStmtStatus(stmt)
+      return {
+        fullscanStep: stmt.statusFullscanStep(),
+        sort: stmt.statusSort(),
+        autoindex: stmt.statusAutoindex(),
+        vmStep: stmt.statusVmStep(),
+        reprepare: stmt.statusReprepare(),
+        run: stmt.statusRun(),
+        filterHit: stmt.statusFilterHit(),
+        filterMiss: stmt.statusFilterMiss(),
+        memused: stmt.statusMemused(),
+      }
     },
   }
 
@@ -510,82 +519,3 @@ export const sqlCheck = <T extends BindValue | BindParameters>(
   return ((params: T) => value(params)?.[0] === 1)
 }
 
-let readStmtStatus = (
-  _: Statement<Record<string, unknown>>,
-): StatementStatus => ({
-  fullscanStep: 0,
-  sort: 0,
-  autoindex: 0,
-  vmStep: 0,
-  reprepare: 0,
-  run: 0,
-  filterMiss: 0,
-  filterHit: 0,
-})
-
-if (!DISABLE_QUERY_METRICS) {
-  const defaultSqliteLibPath = (): string => {
-    switch (Deno.build.os) {
-      case 'darwin':
-        return 'libsqlite3.dylib'
-      case 'linux':
-        return 'libsqlite3.so'
-      case 'windows':
-        return 'sqlite3.dll'
-      default:
-        throw new Error(`Unsupported OS: ${Deno.build.os}`)
-    }
-  }
-
-  const sqliteLibPath = Deno.env.get('SQLITE3_LIB_PATH') ??
-    defaultSqliteLibPath()
-  const lib = Deno.dlopen(sqliteLibPath, {
-    sqlite3_stmt_status: {
-      parameters: ['pointer', 'i32', 'i32'],
-      result: 'i32',
-    },
-  })
-  const { sqlite3_stmt_status } = lib.symbols
-
-  // These match SQLite's documented SQLITE_STMTSTATUS_* constants.
-  // https://sqlite.org/c3ref/c_stmtstatus_counter.html
-  const SQLITE_STMTSTATUS_FULLSCAN_STEP = 1
-  const SQLITE_STMTSTATUS_SORT = 2
-  const SQLITE_STMTSTATUS_AUTOINDEX = 3
-  const SQLITE_STMTSTATUS_VM_STEP = 4
-  const SQLITE_STMTSTATUS_REPREPARE = 5
-  const SQLITE_STMTSTATUS_RUN = 6
-  const SQLITE_STMTSTATUS_FILTER_MISS = 7
-  const SQLITE_STMTSTATUS_FILTER_HIT = 8
-  const SQLITE_STMTSTATUS_MEMUSED = 99
-
-  type StmtStatusOp =
-    | typeof SQLITE_STMTSTATUS_FULLSCAN_STEP
-    | typeof SQLITE_STMTSTATUS_SORT
-    | typeof SQLITE_STMTSTATUS_AUTOINDEX
-    | typeof SQLITE_STMTSTATUS_VM_STEP
-    | typeof SQLITE_STMTSTATUS_REPREPARE
-    | typeof SQLITE_STMTSTATUS_RUN
-    | typeof SQLITE_STMTSTATUS_FILTER_MISS
-    | typeof SQLITE_STMTSTATUS_FILTER_HIT
-    | typeof SQLITE_STMTSTATUS_MEMUSED
-
-  const stmtStatus = (
-    stmt: Statement<Record<string, unknown>>,
-    op: StmtStatusOp,
-  ): number => sqlite3_stmt_status(stmt.unsafeHandle, op, 0)
-
-  readStmtStatus = (
-    stmt: Statement<Record<string, unknown>>,
-  ): StatementStatus => ({
-    fullscanStep: stmtStatus(stmt, SQLITE_STMTSTATUS_FULLSCAN_STEP),
-    sort: stmtStatus(stmt, SQLITE_STMTSTATUS_SORT),
-    autoindex: stmtStatus(stmt, SQLITE_STMTSTATUS_AUTOINDEX),
-    vmStep: stmtStatus(stmt, SQLITE_STMTSTATUS_VM_STEP),
-    reprepare: stmtStatus(stmt, SQLITE_STMTSTATUS_REPREPARE),
-    run: stmtStatus(stmt, SQLITE_STMTSTATUS_RUN),
-    filterMiss: stmtStatus(stmt, SQLITE_STMTSTATUS_FILTER_MISS),
-    filterHit: stmtStatus(stmt, SQLITE_STMTSTATUS_FILTER_HIT),
-    // memUsed: stmtStatus(stmt, SQLITE_STMTSTATUS_MEMUSED), unsupported for some reason
-  })
-}

@@ -59,6 +59,8 @@ export type StatementStatus = {
   filterHit: number
   /** The corresponding SQLITE_STMTSTATUS_FILTER_MISS value is the number of times that the Bloom filter returned a find, and thus the join step had to be processed as normal. */
   filterMiss: number
+  /** This is the approximate number of bytes of heap memory used to store the prepared statement. This value is not a counter. */
+  memused: number
 }
 
 /**
