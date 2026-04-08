@@ -3,7 +3,7 @@
     "@preact/signals": "npm:@preact/signals@^2.9.0"
   },
   "name": "@01edu/api-client",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "license": "MIT",
   "exports": { ".": "./mod.ts" },
   "compilerOptions": {

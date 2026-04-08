@@ -41,6 +41,7 @@ import { respond, ResponseError } from './response.ts'
 import { now } from '@01edu/time'
 import type { Awaitable } from '@01edu/types'
 import { BASE_URL } from './env.ts'
+import { routeMetrics as metrics } from './route-metrics.ts'
 
 type Handler = (ctx: RequestContext) => Awaitable<Response>
 /**
@@ -56,7 +57,8 @@ export const server = (
 ): (req: Request, url?: URL) => Promise<Response> => {
   const handleRequest = async (ctx: RequestContext) => {
     const logProps: Record<string, unknown> = {}
-    logProps.path = `${ctx.req.method}:${ctx.url.pathname}`
+    const key = `${ctx.req.method}:${ctx.url.pathname}`
+    logProps.path = key
     log.info('in', logProps)
     try {
       const res = await routeHandler(ctx)
@@ -78,6 +80,16 @@ export const server = (
       logProps.duration = now() - ctx.span!
       log.error('out', logProps)
       return response
+    } finally {
+      const status = (logProps.status as number) || 0
+      // Skip not found & method not allowed
+      if (status !== 404 && status !== 405) {
+        const metric = metrics[key] ||
+          (metrics[key] = { key, duration: 0, count: 0, success: 0, error: 0 })
+        metric.duration += (logProps.duration as number) || 0
+        metric[status > 399 ? 'error' : 'success']++
+        metric.count++
+      }
     }
   }
 

@@ -79,6 +79,12 @@ type ReservedRoutes<Session = any> = {
    * @deprecated
    */
   'GET/api/sql/metrics'?: Handler<Session, Def | undefined, Def | undefined>
+
+  /**
+   * ⚠️ WARNING: You are overriding the system router metrics route.
+   * @deprecated
+   */
+  'GET/api/router/metrics'?: Handler<Session, Def | undefined, Def | undefined>
 }
 
 // deno-lint-ignore no-explicit-any
