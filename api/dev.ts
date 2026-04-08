@@ -104,6 +104,7 @@ export const createQueryMetricsDevRoute = (metrics: Metric[]) =>
           run: NUM('Number of statement runs'),
           filterHit: NUM('Bloom filter bypass hits'),
           filterMiss: NUM('Bloom filter misses'),
+          memused: NUM('Approximate memory used by the statement'),
         }, 'SQLite sqlite3_stmt_status counters'),
       }),
       'Collected query metrics',
