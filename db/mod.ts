@@ -7,7 +7,7 @@
  */
 
 import { assertEquals } from '@std/assert/equals'
-import { Database, type BindParameters, type BindValue } from '@db/sqlite'
+import { type BindParameters, type BindValue, Database } from '@db/sqlite'
 import type { Expand, MatchKeys, UnionToIntersection } from '@01edu/types'
 import type { ExplainRow, Metric, Sql } from '@01edu/types/db'
 import { respond } from '@01edu/api/response'
@@ -518,4 +518,3 @@ export const sqlCheck = <T extends BindValue | BindParameters>(
   const { value } = sql`SELECT EXISTS(SELECT 1 ${String.raw(query, ...args)})`
   return ((params: T) => value(params)?.[0] === 1)
 }
-

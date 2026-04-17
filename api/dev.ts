@@ -34,16 +34,37 @@ export const createSqlDevRoute = (sql?: Sql) => {
   return route({
     authorize: authorizeDevAccess,
     fn: (_, { query, params }) => {
+      if (!sql) {
+        throw new respond.InternalServerErrorError({
+          type: 'service-error',
+          sqlMessage: 'Database not configured',
+          message: 'SQL service error: Database not configured',
+        })
+      }
       try {
-        if (!sql) {
-          return respond.NotImplemented({
-            message: 'Database not configured',
-          })
-        }
         return sql`${query}`.all(params)
       } catch (error) {
+        const sqlMessage = error instanceof Error
+          ? error.message
+          : 'Unexpected error'
+        const code = (error as { code?: string }).code ?? ''
+
+        if (
+          code === 'SQLITE_BUSY' ||
+          code === 'SQLITE_INTERRUPT' ||
+          /\b(busy|timeout|interrupt)\b/i.test(sqlMessage)
+        ) {
+          throw new respond.RequestTimeoutError({
+            type: 'timeout',
+            sqlMessage,
+            message: `SQL query timed out: ${sqlMessage}`,
+          })
+        }
+
         throw new respond.BadRequestError({
-          message: error instanceof Error ? error.message : 'Unexpected Error',
+          type: 'bad-query',
+          sqlMessage,
+          message: `SQL query error: ${sqlMessage}`,
         })
       }
     },
