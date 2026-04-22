@@ -38,7 +38,7 @@ export const createSqlDevRoute = (sql?: Sql) => {
         throw new respond.InternalServerErrorError({
           type: 'service-error',
           sqlMessage: 'Database not configured',
-          message: 'SQL service error: Database not configured',
+          message: 'SQL service error',
         })
       }
       try {
@@ -57,14 +57,14 @@ export const createSqlDevRoute = (sql?: Sql) => {
           throw new respond.RequestTimeoutError({
             type: 'timeout',
             sqlMessage,
-            message: `SQL query timed out: ${sqlMessage}`,
+            message: 'SQL query timed out',
           })
         }
 
         throw new respond.BadRequestError({
           type: 'bad-query',
           sqlMessage,
-          message: `SQL query error: ${sqlMessage}`,
+          message: 'SQL query error',
         })
       }
     },
