@@ -257,6 +257,14 @@ export const initEntries = <
             [name]: { type },
           })
 
+          // SQLite only auto-indexes primary keys. fieldId is the PK, so entryId
+          // needs an explicit index — without it any partial index on entryInternal
+          // triggers a full table scan of the field table on every join.
+          sql`
+            CREATE INDEX IF NOT EXISTS idx_${tableName}_entry_id
+            ON ${tableName}(entryId)
+          `.run()
+
           fieldTables[name] = table
           fields[name] = table
         }
