@@ -23,7 +23,11 @@ import type {
 import type { Log } from './log.ts'
 import { respond, ResponseError } from './response.ts'
 import type { Database, Metric } from '@01edu/types/db'
-import { createQueryMetricsDevRoute, createSqlDevRoute } from './dev.ts'
+import {
+  createQueryMetricsDevRoute,
+  createRouterMetricsDevRoute,
+  createSqlDevRoute,
+} from './dev.ts'
 import { createDocRoute } from './doc.ts'
 import { createHealthRoute } from './health.ts'
 
@@ -132,6 +136,10 @@ export const makeRouter = <T extends GenericRoutes>(
     if (!defs['GET/api/sql/metrics'] && metrics) {
       defs['GET/api/sql/metrics'] = createQueryMetricsDevRoute(metrics)
     }
+  }
+
+  if (!defs['GET/api/router/metrics']) {
+    defs['GET/api/router/metrics'] = createRouterMetricsDevRoute()
   }
 
   if (!defs['GET/api/doc']) {

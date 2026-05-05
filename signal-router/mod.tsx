@@ -35,7 +35,7 @@ import type {
   TargetedMouseEvent,
   TargetedPointerEvent,
 } from 'preact'
-import { computed, Signal } from '@preact/signals'
+import { computed, Signal, untracked } from '@preact/signals'
 
 const isCurrentURL = (alt: URL) => {
   const url = urlSignal.value
@@ -138,7 +138,7 @@ const getUrl = ({ href, hash, params }: GetUrlProps): URL => {
  * ```
  */
 export const navigate = (props: GetUrlProps & { replace?: boolean }): void =>
-  navigateUrl(getUrl(props).href, props.replace)
+  untracked(() => navigateUrl(getUrl(props).href, props.replace))
 
 /**
  * Props for the `<A>` component.

@@ -3,7 +3,8 @@ import { respond } from './response.ts'
 import type { RequestContext } from '@01edu/types/context'
 import { route } from './router.ts'
 import { ARR, NUM, OBJ, optional, STR } from './validator.ts'
-import type { Metric, Database } from '@01edu/types/db'
+import type { Database, Metric as DbMetric } from '@01edu/types/db'
+import { routeMetrics } from './route-metrics.ts'
 
 /**
  * Authorizes access to developer routes.
@@ -77,7 +78,7 @@ export const createSqlDevRoute = (db: Database) =>
  *
  * @returns A route handler configuration.
  */
-export const createQueryMetricsDevRoute = (metrics: Metric[]) =>
+export const createQueryMetricsDevRoute = (metrics: DbMetric[]) =>
   route({
     authorize: authorizeDevAccess,
     fn: () => metrics,
@@ -104,9 +105,31 @@ export const createQueryMetricsDevRoute = (metrics: Metric[]) =>
           run: NUM('Number of statement runs'),
           filterHit: NUM('Bloom filter bypass hits'),
           filterMiss: NUM('Bloom filter misses'),
+          memused: NUM('Approximate memory used by the statement'),
         }, 'SQLite sqlite3_stmt_status counters'),
       }),
       'Collected query metrics',
     ),
     description: 'List collected SQL query metrics',
+  })
+
+export const createRouterMetricsDevRoute = () =>
+  route({
+    authorize: authorizeDevAccess,
+    fn: () => Object.values(routeMetrics),
+    output: ARR(
+      OBJ({
+        key: STR('Route key (method:path) allow to identify which route'),
+        duration: NUM(
+          'Total time the route handler take to respond, in milliseconds',
+        ),
+        count: NUM('How many times the route was called'),
+        error: NUM('Number of time it responded with a status 400 or above'),
+        success: NUM(
+          'Number of time it responded with a status under 399 (Success, Redirect and Info)',
+        ),
+      }, 'Route metrics'),
+      'Collected route metrics',
+    ),
+    description: 'List collected route metrics',
   })
