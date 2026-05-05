@@ -22,7 +22,7 @@ import type {
 } from '@01edu/types/router'
 import type { Log } from './log.ts'
 import { respond, ResponseError } from './response.ts'
-import type { Metric, Sql } from '@01edu/types/db'
+import type { Database, Metric } from '@01edu/types/db'
 import { createQueryMetricsDevRoute, createSqlDevRoute } from './dev.ts'
 import { createDocRoute } from './doc.ts'
 import { createHealthRoute } from './health.ts'
@@ -32,10 +32,13 @@ import { createHealthRoute } from './health.ts'
  */
 export type RouterOptions = {
   log: Log
-  sql?: Sql
   sensitiveKeys?: string[]
   metrics?: Metric[]
 }
+
+const db = (globalThis as unknown as {
+  ['@01edu/db']: Database | undefined
+})['@01edu/db']
 
 /**
  * A declaration function for creating a route handler.
@@ -117,16 +120,18 @@ const sensitiveData = (
 const pass = ['password', 'confPassword', 'currentPassword', 'newPassword']
 export const makeRouter = <T extends GenericRoutes>(
   defs: T,
-  { log, sql, metrics, sensitiveKeys = pass }: RouterOptions,
+  { log, metrics, sensitiveKeys = pass }: RouterOptions,
 ): (ctx: RequestContext) => Awaitable<Response> => {
   const routeMaps: Record<string, Route> = Object.create(null)
 
-  if (!defs['POST/api/sql/execute']) {
-    defs['POST/api/sql/execute'] = createSqlDevRoute(sql)
-  }
+  if (db) {
+    if (!defs['POST/api/sql/execute']) {
+      defs['POST/api/sql/execute'] = createSqlDevRoute(db)
+    }
 
-  if (!defs['GET/api/sql/metrics'] && metrics) {
-    defs['GET/api/sql/metrics'] = createQueryMetricsDevRoute(metrics)
+    if (!defs['GET/api/sql/metrics'] && metrics) {
+      defs['GET/api/sql/metrics'] = createQueryMetricsDevRoute(metrics)
+    }
   }
 
   if (!defs['GET/api/doc']) {

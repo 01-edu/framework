@@ -1,4 +1,9 @@
-import type { BindParameters, BindValue } from '@db/sqlite'
+import type { BindParameters, BindValue, Database as DB } from '@db/sqlite'
+
+/**
+ * Forwared DB type from jsr:@db/sqlite
+ */
+export type Database = DB
 
 /**
  * Tagged-template helper used to build a SQL statement and execute it later.
