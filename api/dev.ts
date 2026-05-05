@@ -3,7 +3,7 @@ import { respond } from './response.ts'
 import type { RequestContext } from '@01edu/types/context'
 import { route } from './router.ts'
 import { ARR, NUM, OBJ, optional, STR } from './validator.ts'
-import type { Metric, Sql } from '@01edu/types/db'
+import type { Metric, Database } from '@01edu/types/db'
 
 /**
  * Authorizes access to developer routes.
@@ -27,22 +27,15 @@ export const authorizeDevAccess = ({ req }: RequestContext) => {
  * Creates a route handler for executing arbitrary SQL queries.
  * Useful for debugging and development tools.
  *
- * @param sql - The SQL tag function to use for execution.
+ * @param db - The SQLite db object.
  * @returns A route handler configuration.
  */
-export const createSqlDevRoute = (sql?: Sql) => {
-  return route({
+export const createSqlDevRoute = (db: Database) =>
+  route({
     authorize: authorizeDevAccess,
     fn: (_, { query, params }) => {
-      if (!sql) {
-        throw new respond.InternalServerErrorError({
-          type: 'service-error',
-          sqlMessage: 'Database not configured',
-          message: 'SQL service error',
-        })
-      }
       try {
-        return sql`${query}`.all(params)
+        return db.prepare(query).all(params)
       } catch (error) {
         const sqlMessage = error instanceof Error
           ? error.message
@@ -78,7 +71,6 @@ export const createSqlDevRoute = (sql?: Sql) => {
     ),
     description: 'Execute an SQL query',
   })
-}
 
 /**
  * Creates a route handler that exposes collected query metrics.
