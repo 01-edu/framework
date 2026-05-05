@@ -40,10 +40,6 @@ export type RouterOptions = {
   metrics?: Metric[]
 }
 
-const db = (globalThis as unknown as {
-  ['@01edu/db']: Database | undefined
-})['@01edu/db']
-
 /**
  * A declaration function for creating a route handler.
  * This is primarily used for type inference and doesn't have any runtime logic.
@@ -128,6 +124,9 @@ export const makeRouter = <T extends GenericRoutes>(
 ): (ctx: RequestContext) => Awaitable<Response> => {
   const routeMaps: Record<string, Route> = Object.create(null)
 
+  const db = (globalThis as unknown as {
+    ['@01edu/db']: Database | undefined
+  })['@01edu/db']
   if (db) {
     if (!defs['POST/api/sql/execute']) {
       defs['POST/api/sql/execute'] = createSqlDevRoute(db)
