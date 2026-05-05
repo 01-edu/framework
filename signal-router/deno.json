@@ -1,10 +1,10 @@
 {
   "imports": {
     "@preact/signals": "npm:@preact/signals@^2.9.0",
-    "preact": "npm:preact@^10.29.0"
+    "preact": "npm:preact@^10.29.1"
   },
   "name": "@01edu/signal-router",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "license": "MIT",
   "exports": { ".": "./mod.tsx" },
   "compilerOptions": {
