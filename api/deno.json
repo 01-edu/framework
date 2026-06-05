@@ -1,10 +1,11 @@
 {
   "imports": {
     "@std/fmt": "jsr:@std/fmt@^1.0.9",
-    "@std/http": "jsr:@std/http@^1.0.25"
+    "@std/http": "jsr:@std/http@^1.0.25",
+    "@std/streams": "jsr:@std/streams@^1.1.1"
   },
   "name": "@01edu/api",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "license": "MIT",
   "exports": {
     "./context": "./context.ts",
@@ -13,6 +14,7 @@
     "./response": "./response.ts",
     "./router": "./router.ts",
     "./server": "./server.ts",
-    "./validator": "./validator.ts"
+    "./validator": "./validator.ts",
+    "./local_ipc_client": "./local_ipc_client.ts"
   }
 }

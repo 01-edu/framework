@@ -56,6 +56,19 @@ if (APP_ENV !== 'dev' && APP_ENV !== 'prod' && APP_ENV !== 'test') {
 }
 
 /**
+ * The port number the application should listen on, determined by the `PORT` environment variable.
+ * Defaults to '8080' if not set.
+ *
+ * @example
+ * ```ts
+ * import { PORT } from '@01edu/api/env';
+ *
+ * console.log(`Server will listen on port: ${PORT}`);
+ * ```
+ */
+export const PORT: string = ENV('PORT', '8080')
+
+/**
  * The git commit SHA of the current build, typically provided by a CI/CD system.
  *
  * @example
@@ -78,7 +91,10 @@ export const CI_COMMIT_SHA: string = ENV('CI_COMMIT_SHA', '')
  * };
  * ```
  */
-export const DEVTOOL_REPORT_TOKEN: string = ENV('DEVTOOL_REPORT_TOKEN', '')
+export const DEVTOOL_REPORT_TOKEN: string = ENV(
+  'DEVTOOL_REPORT_TOKEN',
+  `localhost:${PORT}`,
+)
 /**
  * The URL for a developer tool service.
  *
