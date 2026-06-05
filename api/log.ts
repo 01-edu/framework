@@ -28,6 +28,7 @@ import {
   DEVTOOL_REPORT_TOKEN,
   DEVTOOL_URL,
 } from './env.ts'
+import { devtoolsPort } from './local_ipc_client.ts'
 
 // Types
 type LogLevel = 'info' | 'error' | 'warn' | 'debug'
@@ -184,7 +185,11 @@ export const logger = async ({
     logBatch = []
 
     try {
-      const response = await fetch(logUrl!, {
+      const logUrlWithPort = APP_ENV === 'dev' && devtoolsPort
+        ? `http://localhost:${devtoolsPort}/api/logs`
+        : logUrl
+    
+      const response = await fetch(logUrlWithPort, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -206,8 +211,7 @@ export const logger = async ({
   const rootDir =
     import.meta.dirname?.slice(0, -'/lib'.length).replaceAll('\\', '/') || ''
 
-  const f = filters || new Set()
-  if (APP_ENV === 'prod') {
+  if (APP_ENV === 'prod' || APP_ENV === 'dev') {
     // Initialize batch interval
     const interval = setInterval(flushLogs, batchInterval)
 
@@ -220,6 +224,10 @@ export const logger = async ({
 
     Deno.addSignalListener('SIGINT', cleanup)
     Deno.addSignalListener('SIGTERM', cleanup)
+  }
+
+  const f = filters || new Set()
+  if (APP_ENV === 'prod') {
     return bind((level, event, props) => {
       if (f.has(event)) return
       const { trace, span } = getContext()
@@ -234,7 +242,7 @@ export const logger = async ({
         service_instance_id: startTime.toString(),
       }
       // Local logging
-      console.log(event, props)
+      console[level](event, props)
 
       logBatch.push(logData)
       logBatch.length >= maxBatchSize && flushLogs()
@@ -264,6 +272,20 @@ export const logger = async ({
             ))
         callChain = callChain ? `${callChain}/${coloredName}` : coloredName
       }
+
+      const { trace, span } = getContext()
+      const logData = {
+        severity_number: levels[level].level,
+        trace_id: trace,
+        span_id: span,
+        event_name: event,
+        attributes: props,
+        timestamp: now() * 1000,
+        service_version: version,
+        service_instance_id: startTime.toString(),
+      }
+      logBatch.push(logData)
+      logBatch.length >= maxBatchSize && flushLogs()
 
       const ev = `${makePrettyTimestamp(level, event)} ${callChain}`.trim()
       props ? console[level](ev, props) : console[level](ev)
