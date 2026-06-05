@@ -147,7 +147,7 @@ const bind = (log: LogFunction) =>
  */
 export const logger = async ({
   filters,
-  batchInterval = 5000,
+  batchInterval = APP_ENV === 'prod' ? 5000 : 500,
   maxBatchSize = 50,
   logUrl = DEVTOOL_URL,
   logToken = DEVTOOL_REPORT_TOKEN,
@@ -177,6 +177,27 @@ export const logger = async ({
     }
   }
 
+  function forwardLogsToDevtool(
+    level: LogLevel,
+    event: string,
+    props?: Record<string, unknown>,
+  ) {
+    const { trace, span } = getContext()
+    const logData = {
+      severity_number: levels[level].level,
+      trace_id: trace,
+      span_id: span,
+      event_name: event,
+      attributes: props,
+      timestamp: now() * 1000,
+      service_version: version,
+      service_instance_id: startTime.toString(),
+    }
+
+    logBatch.push(logData)
+    logBatch.length >= maxBatchSize && flushLogs()
+  }
+
   // DEVTOOLS Batch Logic
   async function flushLogs() {
     if (logBatch.length === 0) return
@@ -188,7 +209,7 @@ export const logger = async ({
       const logUrlWithPort = APP_ENV === 'dev' && devtoolsPort
         ? `http://localhost:${devtoolsPort}/api/logs`
         : logUrl
-    
+
       const response = await fetch(logUrlWithPort, {
         method: 'POST',
         headers: {
@@ -230,22 +251,8 @@ export const logger = async ({
   if (APP_ENV === 'prod') {
     return bind((level, event, props) => {
       if (f.has(event)) return
-      const { trace, span } = getContext()
-      const logData = {
-        severity_number: levels[level].level,
-        trace_id: trace,
-        span_id: span,
-        event_name: event,
-        attributes: props,
-        timestamp: now() * 1000,
-        service_version: version,
-        service_instance_id: startTime.toString(),
-      }
-      // Local logging
+      forwardLogsToDevtool(level, event, props)
       console[level](event, props)
-
-      logBatch.push(logData)
-      logBatch.length >= maxBatchSize && flushLogs()
     })
   }
 
@@ -260,6 +267,7 @@ export const logger = async ({
   if (APP_ENV === 'dev') {
     return bind((level, event, props) => {
       if (f.has(event)) return
+      forwardLogsToDevtool(level, event, props)
       let callChain = ''
       for (const s of Error('').stack!.split('\n').slice(2).reverse()) {
         if (!s.includes(rootDir)) continue
@@ -272,21 +280,6 @@ export const logger = async ({
             ))
         callChain = callChain ? `${callChain}/${coloredName}` : coloredName
       }
-
-      const { trace, span } = getContext()
-      const logData = {
-        severity_number: levels[level].level,
-        trace_id: trace,
-        span_id: span,
-        event_name: event,
-        attributes: props,
-        timestamp: now() * 1000,
-        service_version: version,
-        service_instance_id: startTime.toString(),
-      }
-      logBatch.push(logData)
-      logBatch.length >= maxBatchSize && flushLogs()
-
       const ev = `${makePrettyTimestamp(level, event)} ${callChain}`.trim()
       props ? console[level](ev, props) : console[level](ev)
     })
