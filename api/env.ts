@@ -122,6 +122,20 @@ export const DEVTOOL_URL: string = ENV('DEVTOOL_URL', '')
 export const DEVTOOL_ACCESS_TOKEN: string = ENV('DEVTOOL_ACCESS_TOKEN', '')
 
 /**
+ * A boolean flag indicating whether the developer tools integration is enabled.
+ *
+ * @example
+ * ```ts
+ * import { WITH_DEVTOOLS } from '@01edu/api/env';
+ *
+ * if (WITH_DEVTOOLS) {
+ *   // Initialize or enable developer tools integrations
+ * }
+ * ```
+ */
+export const WITH_DEVTOOLS: boolean = truthy('WITH_DEVTOOLS')
+
+/**
  * Disable query debug instrumentation when set in the environment.
  */
 export const DISABLE_QUERY_METRICS: boolean = truthy(
