@@ -133,7 +133,7 @@ export const DEVTOOL_ACCESS_TOKEN: string = ENV('DEVTOOL_ACCESS_TOKEN', '')
  * }
  * ```
  */
-export const WITH_DEVTOOLS: boolean = truthy('WITH_DEVTOOLS')
+export const WITH_DEVTOOLS: boolean = truthy(ENV('WITH_DEVTOOLS', ''))
 
 /**
  * Disable query debug instrumentation when set in the environment.
