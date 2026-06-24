@@ -201,6 +201,7 @@ export const logger = async ({
   // DEVTOOLS Batch Logic
   async function flushLogs() {
     if (logBatch.length === 0) return
+    if (!logUrl || !logToken) return
 
     const batchToSend = logBatch
     logBatch = []
@@ -267,7 +268,7 @@ export const logger = async ({
   if (APP_ENV === 'dev') {
     return bind((level, event, props) => {
       if (f.has(event)) return
-      forwardLogsToDevtool(level, event, props)
+      ;(logUrl && logToken) && forwardLogsToDevtool(level, event, props)
       let callChain = ''
       for (const s of Error('').stack!.split('\n').slice(2).reverse()) {
         if (!s.includes(rootDir)) continue
